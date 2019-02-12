@@ -36,7 +36,7 @@ type ItemViewModel = {
 };
 
 type ApplicationState = {
-
+    items: ItemViewModel[]
 };
 
 class Application {
@@ -45,7 +45,7 @@ class Application {
 
     constructor() {
         this.state = {
-
+            items: []
         };
     }
 
@@ -55,7 +55,9 @@ class Application {
 
     componentDidMount() {
         const root = new Root('home');
-        this.watch = StateManager.forComponent(this, root);
+        this.watch = StateManager.forComponent(this, root, {
+            items: null
+        });
         // this.watch = new StateManager([
         //     j.watch(root, j.for(Item.inRoot), i => <ItemViewModel>{}, vm => {})
         // ]);

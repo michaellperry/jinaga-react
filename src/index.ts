@@ -7,6 +7,10 @@ export interface Stoppable {
     stop(): void;
 }
 
+export type FieldSpecification = {
+
+};
+
 export class StateManager {
     constructor(
         private watches: Stoppable[]
@@ -14,7 +18,8 @@ export class StateManager {
 
     static forComponent<Model, ViewModel>(
         component: StatefulComponent<ViewModel>,
-        model: Model
+        model: Model,
+        spec: { [K in keyof ViewModel]: FieldSpecification }
     ) {
         return new StateManager([]);
     }
