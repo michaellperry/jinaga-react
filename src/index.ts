@@ -1,3 +1,5 @@
-export function plus(a: number, b: number) {
-    return a + b;
-}
+export interface StatefulComponent<S> {
+    state: S;
+    setState: (state: S) => void;
+};
+
