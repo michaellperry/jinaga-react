@@ -1,7 +1,7 @@
-import { StatefulComponent } from "../src/index";
-import { JinagaBrowser, Watch } from "jinaga";
-
 import { expect } from "chai";
+import { JinagaBrowser } from "jinaga";
+import { StateManager } from "../src/index";
+
 
 const j = JinagaBrowser.create({});
 
@@ -41,7 +41,7 @@ type ApplicationState = {
 
 class Application {
     state: ApplicationState;
-    private watch: Watch<Item, ItemViewModel>;
+    private watch: StateManager;
 
     constructor() {
         this.state = {
@@ -54,12 +54,10 @@ class Application {
     }
 
     componentDidMount() {
-        const root = {
-            type: 'Application.Root',
-            identity: 'home'
-        };
-        const watch = j.watch(root, j.for(Item.inRoot), i => <ItemViewModel>{}, vm => {});
-        this.watch = watch;
+        const root = new Root('home');
+        this.watch = new StateManager([
+            j.watch(root, j.for(Item.inRoot), i => <ItemViewModel>{}, vm => {})
+        ]);
     }
 
     componentWillUnmount() {
