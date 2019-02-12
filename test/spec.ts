@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { JinagaBrowser } from "jinaga";
-import { StateManager } from "../src/index";
+import { StateManager, collection, fixed } from "../src/index";
 
 
 const j = JinagaBrowser.create({});
@@ -32,7 +32,7 @@ class Item {
 }
 
 type ItemViewModel = {
-
+    fact: Item
 };
 
 type ApplicationState = {
@@ -56,11 +56,10 @@ class Application {
     componentDidMount() {
         const root = new Root('home');
         this.watch = StateManager.forComponent(this, root, {
-            items: null
+            items: collection<ItemViewModel>()(j.for(Item.inRoot), {
+                fact: fixed(i => i)
+            })
         });
-        // this.watch = new StateManager([
-        //     j.watch(root, j.for(Item.inRoot), i => <ItemViewModel>{}, vm => {})
-        // ]);
     }
 
     componentWillUnmount() {
