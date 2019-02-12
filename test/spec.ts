@@ -55,9 +55,10 @@ class Application {
 
     componentDidMount() {
         const root = new Root('home');
-        this.watch = new StateManager([
-            j.watch(root, j.for(Item.inRoot), i => <ItemViewModel>{}, vm => {})
-        ]);
+        this.watch = StateManager.forComponent(this, root);
+        // this.watch = new StateManager([
+        //     j.watch(root, j.for(Item.inRoot), i => <ItemViewModel>{}, vm => {})
+        // ]);
     }
 
     componentWillUnmount() {

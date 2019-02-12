@@ -12,6 +12,13 @@ export class StateManager {
         private watches: Stoppable[]
     ) { }
 
+    static forComponent<Model, ViewModel>(
+        component: StatefulComponent<ViewModel>,
+        model: Model
+    ) {
+        return new StateManager([]);
+    }
+
     stop() {
         this.watches.forEach(watch => watch.stop());
         this.watches = [];
