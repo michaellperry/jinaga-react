@@ -9,8 +9,8 @@ export interface Stoppable {
     stop(): void;
 }
 
-export type FieldSpecification<Model, ViewModel, T> = {
-
+export interface FieldSpecification<Model, ViewModel, T> {
+    initialize: (m: Model) => T;
 };
 
 export class StateManager {
@@ -43,11 +43,15 @@ export function collection<
     preposition: Preposition<ParentModel, ChildModel>,
     spec: { [K in keyof Element<ChildViewModelArray>]: FieldSpecification<ChildModel, Element<ChildViewModelArray>, Element<ChildViewModelArray>[K]> }
 ) : FieldSpecification<ParentModel, ParentViewModel, ChildViewModelArray> {
-    return {};
+    return {
+        initialize: _ => <any>[]
+    };
 }
 
 export function fixed<Model, ViewModel, T>(
     selector: (m: Model) => T
 ) : FieldSpecification<Model, ViewModel, T> {
-    return {};
+    return {
+        initialize: m => selector(m)
+    };
 }
