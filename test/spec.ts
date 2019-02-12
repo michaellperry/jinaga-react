@@ -54,11 +54,11 @@ class Application {
 
     componentDidMount() {
         const root = new Root('home');
-        this.watch = StateManager.forComponent(this, root, {
-            items: collection(j.for(Item.inRoot), {
-                fact: fixed(i => i)
-            })
-        });
+        this.watch = StateManager.forComponent(this, root, [
+            collection('items', j.for(Item.inRoot), [
+                fixed('fact', i => i)
+            ])
+        ]);
     }
 
     componentWillUnmount() {

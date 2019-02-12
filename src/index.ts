@@ -9,8 +9,8 @@ export interface Stoppable {
     stop(): void;
 }
 
-export interface FieldSpecification<Model, T> {
-    initialize: (m: Model) => T;
+export interface FieldSpecification<Model, ViewModel> {
+    initialize: (m: Model, vm: ViewModel) => ViewModel;
 };
 
 export class StateManager {
@@ -21,7 +21,7 @@ export class StateManager {
     static forComponent<Model, ViewModel>(
         component: StatefulComponent<ViewModel>,
         model: Model,
-        spec: { [K in keyof ViewModel]: FieldSpecification<Model, ViewModel[K]> }
+        spec: FieldSpecification<Model, ViewModel>[]
     ) {
         return new StateManager([]);
     }
@@ -35,22 +35,29 @@ export class StateManager {
 export type Element<A> = A extends Array<infer E> ? E : never;
 
 export function collection<
-    ParentModel,
+    Model,
+    ViewModel,
     ChildModel,
-    ChildViewModelArray
+    K extends keyof ViewModel
 >(
-    preposition: Preposition<ParentModel, ChildModel>,
-    spec: { [K in keyof Element<ChildViewModelArray>]: FieldSpecification<ChildModel, Element<ChildViewModelArray>[K]> }
-) : FieldSpecification<ParentModel, ChildViewModelArray> {
+    field: K,
+    preposition: Preposition<Model, ChildModel>,
+    spec: FieldSpecification<ChildModel, Element<ViewModel[K]>>[]
+) : FieldSpecification<Model, ViewModel> {
     return {
-        initialize: _ => <any>[]
+        initialize: (_, vm) => ({ ...vm, [field]: [] })
     };
 }
 
-export function fixed<Model, T>(
-    selector: (m: Model) => T
-) : FieldSpecification<Model, T> {
+export function fixed<
+    Model,
+    ViewModel,
+    K extends keyof ViewModel
+>(
+    field: K,
+    selector: (m: Model) => ViewModel[K]
+) : FieldSpecification<Model, ViewModel> {
     return {
-        initialize: m => selector(m)
+        initialize: (m, vm) => ({ ...vm, [field]: selector(m) })
     };
 }
