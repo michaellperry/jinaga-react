@@ -32,25 +32,22 @@ export class StateManager {
     }
 }
 
-export function collection<
-    ChildViewModel
->() {
-    function create<
-        ParentModel,
-        ParentViewModel,
-        ChildModel
-    >(
-        preposition: Preposition<ParentModel, ChildModel>,
-        spec: { [K in keyof ChildViewModel]: FieldSpecification<ChildModel, ChildViewModel, ChildViewModel[K]> }
-    ) : FieldSpecification<ParentModel, ParentViewModel, ChildViewModel[]> {
-        return null;
-    }
+export type Element<A> = A extends Array<infer E> ? E : never;
 
-    return create;
+export function collection<
+    ParentModel,
+    ParentViewModel,
+    ChildModel,
+    ChildViewModelArray
+>(
+    preposition: Preposition<ParentModel, ChildModel>,
+    spec: { [K in keyof Element<ChildViewModelArray>]: FieldSpecification<ChildModel, Element<ChildViewModelArray>, Element<ChildViewModelArray>[K]> }
+) : FieldSpecification<ParentModel, ParentViewModel, ChildViewModelArray> {
+    return {};
 }
 
 export function fixed<Model, ViewModel, T>(
     selector: (m: Model) => T
 ) : FieldSpecification<Model, ViewModel, T> {
-    return null;
+    return {};
 }

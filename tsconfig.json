@@ -1,17 +1,19 @@
 {
     "compilerOptions": {
-        "module": "amd",
+        "module": "commonjs",
         "target": "es5",
+        "strict": true,
         "noImplicitAny": true,
-        "allowJs": true,
+        "strictNullChecks": true,
+        "allowJs": false,
         "moduleResolution": "node",
         "sourceMap": true,
-        "outDir": "../dist",
+        "outDir": "./dist",
         "baseUrl": ".",
         "lib": [ "dom", "es2015" ],
         "paths": {
             "*": [
-                "../node_modules/*"
+                "./node_modules/*"
             ]
         }
     },
