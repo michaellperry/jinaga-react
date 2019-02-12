@@ -1,0 +1,31 @@
+{
+  "name": "jinaga-react",
+  "version": "1.0.0",
+  "description": "React binding helpers for Jinaga",
+  "main": "dist/index.js",
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build": "webpack",
+    "test": "mocha --opts mocha.opts",
+    "dev": "mocha --opts mocha.opts --watch"
+  },
+  "keywords": [
+    "react",
+    "viewmodel"
+  ],
+  "author": "Michael L Perry",
+  "license": "MIT",
+  "dependencies": {
+    "jinaga": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.5",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "ts-loader": "^5.3.3",
+    "ts-node": "^8.0.2",
+    "typescript": "^3.3.3",
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3"
+  }
+}
