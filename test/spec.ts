@@ -55,7 +55,7 @@ class Application {
     componentDidMount() {
         const root = new Root('home');
         this.watch = StateManager.forComponent(this, root, {
-            items: collection<Root, ApplicationState, Item, ItemViewModel[]>(j.for(Item.inRoot), {
+            items: collection(j.for(Item.inRoot), {
                 fact: fixed(i => i)
             })
         });
