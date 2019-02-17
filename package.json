@@ -17,7 +17,7 @@
   "author": "Michael L Perry",
   "license": "MIT",
   "dependencies": {
-    "jinaga": "^2.2.0"
+    "jinaga": "^2.3.1"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
