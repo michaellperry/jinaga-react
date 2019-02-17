@@ -24,8 +24,24 @@ class Item {
         return Jinaga.match(<Item>{
             type: Item.Type,
             root: r
+        }).suchThat(Jinaga.not(Item.isDeleted));
+    }
+
+    static isDeleted(i: Item) {
+        return Jinaga.exists(<ItemDeleted>{
+            type: ItemDeleted.Type,
+            item: i
         });
     }
+}
+
+class ItemDeleted {
+    static Type = 'Application.Item.Deleted';
+    type = ItemDeleted.Type;
+
+    constructor(
+        public item: Item
+    ) { }
 }
 
 interface ItemViewModel {
@@ -99,5 +115,11 @@ describe('Application State', () => {
     it('should resolve the key', async () => {
         const item = await j.fact(new Item(new Root('home'), new Date()));
         expect(application.state.items[0].key).to.equal(j.hash(item));
+    });
+
+    it('should remove from a collection', async () => {
+        const item = await j.fact(new Item(new Root('home'), new Date()));
+        await j.fact(new ItemDeleted(item));
+        expect(application.state.items.length).to.equal(0);
     });
 });
