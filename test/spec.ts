@@ -31,6 +31,7 @@ class Item {
 }
 
 interface ItemViewModel {
+    key: string;
     fact: Item;
 }
 
@@ -54,8 +55,8 @@ class Application {
 
     componentDidMount() {
         const root = new Root('home');
-        this.watch = StateManager.forComponent(this, root, [
-            collection('items', j.for(Item.inRoot), [
+        this.watch = StateManager.forComponent(this, root, j, [
+            collection('items', j.for(Item.inRoot), i => i.key, [
                 fixed('fact', i => i)
             ])
         ]);
@@ -74,5 +75,13 @@ describe('Application State', () => {
         application.componentDidMount();
         application.componentWillUnmount();
         expect(application.state).to.not.be.null;
+    });
+
+    it('should add to a collection', async () => {
+        const application = new Application();
+        application.componentDidMount();
+        await j.fact(new Item(new Root('home'), new Date()));
+        expect(application.state.items.length).to.equal(1);
+        application.componentWillUnmount();
     });
 });
