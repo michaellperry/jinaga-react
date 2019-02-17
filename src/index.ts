@@ -112,7 +112,7 @@ export function collection<
     };
 }
 
-export function fixed<
+export function field<
     Model,
     ViewModel,
     K extends keyof ViewModel

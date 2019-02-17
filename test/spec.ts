@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { JinagaBrowser, Jinaga } from "jinaga";
-import { StateManager, collection, fixed } from "../src/index";
+import { StateManager, collection, field as field } from "../src/index";
 
 class Root {
     static Type = 'Application.Root';
@@ -55,8 +55,8 @@ class Application {
         const root = new Root('home');
         this.watch = StateManager.forComponent(this, root, j, [
             collection('items', Jinaga.for(Item.inRoot), i => i.key, [
-                fixed('key', i => j.hash(i)),
-                fixed('fact', i => i)
+                field('key', i => j.hash(i)),
+                field('fact', i => i)
             ])
         ]);
     }
