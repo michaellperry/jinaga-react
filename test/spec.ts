@@ -44,9 +44,31 @@ class ItemDeleted {
     ) { }
 }
 
+class SubItem {
+    static Type = 'Application.SubItem';
+    type = SubItem.Type;
+
+    constructor(
+        public item: Item,
+        public cretedAt: Date | string
+    ) { }
+
+    static inItem(i: Item) {
+        return Jinaga.match(<SubItem> {
+            type: SubItem.Type,
+            item: i
+        });
+    }
+}
+
+interface SubItemViewModel {
+    createdAt: Date | string;
+}
+
 interface ItemViewModel {
     key: string;
     fact: Item;
+    subItems: SubItemViewModel[]
 }
 
 interface ApplicationState {
@@ -72,7 +94,10 @@ class Application {
         this.watch = StateManager.forComponent(this, root, j, [
             collection('items', Jinaga.for(Item.inRoot), i => i.key, [
                 field('key', i => j.hash(i)),
-                field('fact', i => i)
+                field('fact', i => i),
+                collection('subItems', Jinaga.for(SubItem.inItem), s => s.createdAt, [
+                    field('createdAt', s => s.cretedAt)
+                ])
             ])
         ]);
     }
@@ -121,5 +146,11 @@ describe('Application State', () => {
         const item = await j.fact(new Item(new Root('home'), new Date()));
         await j.fact(new ItemDeleted(item));
         expect(application.state.items.length).to.equal(0);
+    });
+
+    it('should resolve sub items', async () => {
+        const item = await j.fact(new Item(new Root('home'), new Date()));
+        const subItem = await j.fact(new SubItem(item, new Date()));
+        expect(application.state.items[0].subItems.length).to.equal(1);
     });
 });

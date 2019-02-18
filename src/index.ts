@@ -10,23 +10,31 @@ export interface Stoppable {
     stop(): void;
 }
 
-export type BeginWatch<Model, ChildModel, ChildViewModel> = (
+export type ViewModelPath<Parent, Id> = {
+    parent: Parent,
+    id: Id
+};
+
+export type BeginWatch<Model, Parent, ChildModel, Id> = (
     preposition: Preposition<Model, ChildModel>,
-    resultAdded: (child: ChildModel) => ChildViewModel,
-    resultRemoved: (childViewModel: ChildViewModel) => void
-) => Watch<ChildModel, ChildViewModel>;
+    resultAdded: (parent: Parent, child: ChildModel) => ViewModelPath<Parent, Id>,
+    resultRemoved: (path: ViewModelPath<Parent, Id>) => void
+) => Watch<ChildModel, ViewModelPath<Parent, Id>>;
 
 export type Transformer<ViewModel> = (oldViewModel: ViewModel) => ViewModel;
 
-export type Mutator<ViewModel> = (transformer: Transformer<ViewModel>) => void;
+export type Mutator<Path, ViewModel> = (path: Path, transformer: Transformer<ViewModel>) => void;
 
-export interface FieldSpecification<Model, ViewModel> {
+export interface FieldSpecificationComplete<Model, ViewModel, ChildModel, Parent, Id> {
     initialize(m: Model, vm: ViewModel): ViewModel;
     createWatch(
-        beginWatch: BeginWatch<Model, any, any>,
-        mutator: Mutator<any>
-    ) : Watch<any, any>[]
+        beginWatch: BeginWatch<Model, Parent, ChildModel, Id>,
+        mutator: Mutator<Parent, ViewModel>
+    ) : Watch<ChildModel, Parent>[]
 };
+
+export type FieldSpecification<Model, ViewModel> =
+    FieldSpecificationComplete<Model, ViewModel, any, any, any>;
 
 export class StateManager {
     constructor(
@@ -39,14 +47,14 @@ export class StateManager {
         j: Jinaga,
         spec: FieldSpecification<Model, ViewModel>[]
     ) {
-        function beginWatch<ChildModel, ChildViewModel>(
+        function beginWatch<ChildModel, Id>(
             preposition: Preposition<Model, ChildModel>,
-            resultAdded: (child: ChildModel) => ChildViewModel,
-            resultRemoved: (childViewModel: ChildViewModel) => void
+            resultAdded: (parent: undefined, child: ChildModel) => ViewModelPath<undefined, Id>,
+            resultRemoved: (path: ViewModelPath<undefined, Id>) => void
         ) {
-            return j.watch(model, preposition, resultAdded, resultRemoved);
+            return j.watch(model, preposition, c => resultAdded(undefined, c), resultRemoved);
         }
-        function mutator(transformer: Transformer<ViewModel>) {
+        function mutator(path: undefined, transformer: Transformer<ViewModel>) {
             component.setState(transformer(component.state));
         }
         const watches = spec
@@ -77,34 +85,54 @@ export function collection<
 ) : FieldSpecification<Model, ViewModel> {
     type ChildViewModel = Element<ViewModel[K]>;
 
-    function createWatch(
-        beginWatch : BeginWatch<Model, ChildModel, ChildViewModel>,
-        mutator : Mutator<ViewModel>
+    function createWatch<Parent>(
+        beginWatch : BeginWatch<Model, Parent, ChildModel, KeyType>,
+        mutator : Mutator<Parent, ViewModel>
     ) {
-        function resultAdded(child: ChildModel) : ChildViewModel {
+        function resultAdded(parent: Parent, child: ChildModel) {
             const childViewModel = spec.reduce(
                 (vm, s) => s.initialize(child, vm),
                 <ChildViewModel>{});
-            mutator(vm => {
+            mutator(parent, vm => {
                 const oldCollection : ChildViewModel[] = <any>vm[field];
                 const newCollection = [ ...oldCollection, childViewModel ];
                 const newViewModel = { ...vm, [field]: newCollection };
                 return newViewModel;
             });
-            return childViewModel;
+            return { parent, id: key(childViewModel) };
         }
 
-        function resultRemoved(childViewModel: ChildViewModel) : void {
-            const keyToRemove = key(childViewModel);
-            mutator(vm => {
+        function resultRemoved({ parent, id } : ViewModelPath<Parent, KeyType>) {
+            mutator(parent, vm => {
                 const oldCollection : ChildViewModel[] = <any>vm[field];
-                const newCollection = oldCollection.filter(c => key(c) !== keyToRemove);
+                const newCollection = oldCollection.filter(c => key(c) !== id);
                 const newViewModel = { ...vm, [field]: newCollection };
                 return newViewModel;
             });
         }
 
-        return [beginWatch(preposition, resultAdded, resultRemoved)];
+        const watch = beginWatch(preposition, resultAdded, resultRemoved);
+
+        function continueWatch<GrandchildModel, GrandchildKeyType>(
+            preposition: Preposition<ChildModel, GrandchildModel>,
+            resultAdded: (parent: ViewModelPath<Parent, KeyType>, gm: GrandchildModel) => ViewModelPath< ViewModelPath<Parent, KeyType>, GrandchildKeyType>,
+            resultRemoved: (gvm: ViewModelPath< ViewModelPath<Parent, KeyType>, GrandchildKeyType>) => void
+        ) {
+            return watch.watch(preposition, resultAdded, resultRemoved);
+        }
+
+        function continueMutator({parent, id}: ViewModelPath<Parent, KeyType>, transformer: Transformer<ChildViewModel>) {
+            mutator(parent, vm => {
+                const oldCollection: ChildViewModel[] = <any>vm[field];
+                const newCollection = oldCollection.map(c =>
+                    key(c) === id ? transformer(c) : c);
+                return { ...vm, [field]: newCollection };
+            });
+        }
+
+        spec.forEach(s => s.createWatch(continueWatch, continueMutator));
+
+        return [watch];
     }
     return {
         initialize: (_, vm) => ({ ...vm, [field]: [] }),
