@@ -15,7 +15,7 @@ export type ViewModelPath<Parent, Id> = {
     id: Id
 };
 
-export type BeginWatch<Model, Parent, ChildModel, Id> = (
+export type BeginWatch<Model, ChildModel, Parent, Id> = (
     preposition: Preposition<Model, ChildModel>,
     resultAdded: (parent: Parent, child: ChildModel) => ViewModelPath<Parent, Id>,
     resultRemoved: (path: ViewModelPath<Parent, Id>) => void
@@ -28,7 +28,7 @@ export type Mutator<Path, ViewModel> = (path: Path, transformer: Transformer<Vie
 export interface FieldSpecificationComplete<Model, ViewModel, ChildModel, Parent, Id> {
     initialize(m: Model, vm: ViewModel): ViewModel;
     createWatch(
-        beginWatch: BeginWatch<Model, Parent, ChildModel, Id>,
+        beginWatch: BeginWatch<Model, ChildModel, Parent, Id>,
         mutator: Mutator<Parent, ViewModel>
     ) : Watch<ChildModel, Parent>[]
 };
@@ -86,7 +86,7 @@ export function collection<
     type ChildViewModel = Element<ViewModel[K]>;
 
     function createWatch<Parent>(
-        beginWatch : BeginWatch<Model, Parent, ChildModel, KeyType>,
+        beginWatch : BeginWatch<Model, ChildModel, Parent, KeyType>,
         mutator : Mutator<Parent, ViewModel>
     ) {
         function resultAdded(parent: Parent, child: ChildModel) {
