@@ -1,5 +1,5 @@
-import { Preposition } from "jinaga/dist/types/query/query-parser";
 import { Jinaga, Watch } from "jinaga";
+import { Preposition } from "jinaga/dist/types/query/query-parser";
 
 export interface StatefulComponent<S> {
     state: S;

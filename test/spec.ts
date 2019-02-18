@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { JinagaBrowser, Jinaga } from "jinaga";
-import { StateManager, collection, field as field } from "../src/index";
+import { Jinaga, JinagaBrowser } from "jinaga";
+import { collection, field, StateManager } from "../src/index";
 
 class Root {
     static Type = 'Application.Root';
@@ -61,8 +61,30 @@ class SubItem {
     }
 }
 
+class SubSubItem {
+    static Type = 'Application.SubSubItem';
+    type = SubSubItem.Type;
+
+    constructor(
+        public subItem: SubItem,
+        public id: string
+    ) { }
+
+    static inSubItem(si: SubItem) {
+        return Jinaga.match(<SubSubItem>{
+            type: SubSubItem.Type,
+            subItem: si
+        });
+    }
+}
+
+interface SubSubItemViewModel {
+    id: string;
+}
+
 interface SubItemViewModel {
     createdAt: Date | string;
+    subSubItems: SubSubItemViewModel[];
 }
 
 interface ItemViewModel {
@@ -96,7 +118,10 @@ class Application {
                 field('key', i => j.hash(i)),
                 field('fact', i => i),
                 collection('subItems', Jinaga.for(SubItem.inItem), s => s.createdAt, [
-                    field('createdAt', s => s.cretedAt)
+                    field('createdAt', s => s.cretedAt),
+                    collection('subSubItems', Jinaga.for(SubSubItem.inSubItem), ssi => ssi.id, [
+                        field('id', ssi => ssi.id)
+                    ])
                 ])
             ])
         ]);
@@ -150,7 +175,20 @@ describe('Application State', () => {
 
     it('should resolve sub items', async () => {
         const item = await j.fact(new Item(new Root('home'), new Date()));
-        const subItem = await j.fact(new SubItem(item, new Date()));
+        await j.fact(new SubItem(item, new Date()));
         expect(application.state.items[0].subItems.length).to.equal(1);
+    });
+
+    it('should resolve fields of sub items', async () => {
+        const item = await j.fact(new Item(new Root('home'), new Date()));
+        const subItem = await j.fact(new SubItem(item, new Date()));
+        expect(application.state.items[0].subItems[0].createdAt).to.equal(subItem.cretedAt);
+    });
+
+    it('should result sub sub items', async () => {
+        const item = await j.fact(new Item(new Root('home'), new Date()));
+        const subItem = await j.fact(new SubItem(item, new Date()));
+        await j.fact(new SubSubItem(subItem, 'reindeer flotilla'));
+        expect(application.state.items[0].subItems[0].subSubItems[0].id).to.equal('reindeer flotilla');
     });
 });
