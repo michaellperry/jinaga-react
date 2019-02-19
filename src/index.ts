@@ -1,5 +1,4 @@
-import { Jinaga, Watch } from "jinaga";
-import { Preposition } from "jinaga/dist/types/query/query-parser";
+import { Jinaga, Watch, Preposition } from "jinaga";
 
 export interface StatefulComponent<S> {
     state: S;
@@ -15,20 +14,20 @@ export type ViewModelPath<Parent, Id> = {
     id: Id
 };
 
-export type BeginWatch<Model, ChildModel, Parent, Id> = (
+export type BeginWatch<Model, ChildModel, Parent, Path> = (
     preposition: Preposition<Model, ChildModel>,
-    resultAdded: (parent: Parent, child: ChildModel) => ViewModelPath<Parent, Id>,
-    resultRemoved: (path: ViewModelPath<Parent, Id>) => void
-) => Watch<ChildModel, ViewModelPath<Parent, Id>>;
+    resultAdded: (parent: Parent, child: ChildModel) => Path,
+    resultRemoved: (path: Path) => void
+) => Watch<ChildModel, Path>;
 
 export type Transformer<ViewModel> = (oldViewModel: ViewModel) => ViewModel;
 
 export type Mutator<Path, ViewModel> = (path: Path, transformer: Transformer<ViewModel>) => void;
 
-export interface FieldSpecificationComplete<Model, ViewModel, ChildModel, Parent, Id> {
+export interface FieldSpecificationComplete<Model, ViewModel, ChildModel, Parent, Path> {
     initialize(m: Model, vm: ViewModel): ViewModel;
     createWatch(
-        beginWatch: BeginWatch<Model, ChildModel, Parent, Id>,
+        beginWatch: BeginWatch<Model, ChildModel, Parent, Path>,
         mutator: Mutator<Parent, ViewModel>
     ) : Watch<ChildModel, Parent>[]
 };
@@ -86,7 +85,7 @@ export function collection<
     type ChildViewModel = Element<ViewModel[K]>;
 
     function createWatch<Parent>(
-        beginWatch : BeginWatch<Model, ChildModel, Parent, KeyType>,
+        beginWatch : BeginWatch<Model, ChildModel, Parent, ViewModelPath<Parent, KeyType>>,
         mutator : Mutator<Parent, ViewModel>
     ) {
         function resultAdded(parent: Parent, child: ChildModel) {
@@ -136,6 +135,43 @@ export function collection<
     }
     return {
         initialize: (_, vm) => ({ ...vm, [field]: [] }),
+        createWatch
+    };
+}
+
+export function property<
+    Model,
+    ViewModel,
+    PropertyModel,
+    K extends keyof ViewModel
+>(
+    field: K,
+    preposition: Preposition<Model, PropertyModel>,
+    selector: (m: PropertyModel) => ViewModel[K],
+    initialValue: ViewModel[K]
+) : FieldSpecification<Model, ViewModel> {
+    function createWatch<Parent>(
+        beginWatch : BeginWatch<Model, PropertyModel, Parent, Parent>,
+        mutator : Mutator<Parent, ViewModel>
+    ) {
+        function resultAdded(parent: Parent, child: PropertyModel) {
+            mutator(parent, vm => {
+                const newValue = selector(child);
+                const newViewModel = { ...vm, [field]: newValue };
+                return newViewModel;
+            });
+            return parent;
+        }
+
+        function resultRemoved(parent : Parent) {
+        }
+
+        const watch = beginWatch(preposition, resultAdded, resultRemoved);
+
+        return [watch];
+    }
+    return {
+        initialize: (_, vm) => ({ ...vm, [field]: initialValue }),
         createWatch
     };
 }

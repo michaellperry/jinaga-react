@@ -75,3 +75,21 @@ export class SubSubItem {
         });
     }
 }
+
+export class Name {
+    static Type = 'Application.Name';
+    type = Name.Type;
+
+    constructor(
+        public root: Root,
+        public value: string,
+        public prior: Name[]
+    ) { }
+
+    static inRoot(r: Root) {
+        return j.match(<Name>{
+            type: Name.Type,
+            root: r
+        });
+    }
+}

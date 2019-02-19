@@ -16,5 +16,6 @@ export interface ItemViewModel {
 }
 
 export interface ApplicationState {
+    name: string;
     items: ItemViewModel[];
 }

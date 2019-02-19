@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Jinaga, JinagaBrowser } from "jinaga";
-import { collection, field, StateManager } from "../src/index";
-import { Item, ItemDeleted, Root, SubItem, SubSubItem } from "./model";
+import { collection, field, property, StateManager } from "../src/index";
+import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 
 class Application {
@@ -10,6 +10,7 @@ class Application {
 
     constructor() {
         this.state = {
+            name: '',
             items: []
         };
     }
@@ -21,6 +22,7 @@ class Application {
     componentDidMount(j: Jinaga) {
         const root = new Root('home');
         this.watch = StateManager.forComponent(this, root, j, [
+            property('name', j.for(Name.inRoot), n => n.value, ''),
             collection('items', j.for(Item.inRoot), i => i.key, [
                 field('key', i => j.hash(i)),
                 field('fact', i => i),
@@ -97,5 +99,10 @@ describe('Application State', () => {
         const subItem = await j.fact(new SubItem(item, new Date()));
         await j.fact(new SubSubItem(subItem, 'reindeer flotilla'));
         expect(application.state.items[0].subItems[0].subSubItems[0].id).to.equal('reindeer flotilla');
+    });
+
+    it('should resolve properties', async () => {
+        await j.fact(new Name(new Root('home'), 'Home', []));
+        expect(application.state.name).to.equal('Home');
     });
 });
