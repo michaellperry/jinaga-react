@@ -139,6 +139,17 @@ export function collection<
     };
 }
 
+export function lastResolver<T>(defaultValue: T) {
+    return (candidates: T[]) => {
+        if (candidates.length > 0) {
+            return candidates[candidates.length - 1];
+        }
+        else {
+            return defaultValue;
+        }
+    }
+}
+
 export function property<
     Model,
     ViewModel,
@@ -148,7 +159,8 @@ export function property<
     field: K,
     preposition: Preposition<Model, PropertyModel>,
     selector: (m: PropertyModel) => ViewModel[K],
-    initialValue: ViewModel[K]
+    initialValue: ViewModel[K],
+    resolver: (candidates: ViewModel[K][]) => ViewModel[K] = lastResolver(initialValue)
 ) : FieldSpecification<Model, ViewModel> {
     function createWatch<Parent>(
         beginWatch : BeginWatch<Model, PropertyModel, Parent, Parent>,

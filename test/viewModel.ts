@@ -17,5 +17,6 @@ export interface ItemViewModel {
 
 export interface ApplicationState {
     name: string;
+    nameWithConflicts: string;
     items: ItemViewModel[];
 }
