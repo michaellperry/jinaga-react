@@ -1,101 +1,8 @@
 import { expect } from "chai";
 import { Jinaga, JinagaBrowser } from "jinaga";
 import { collection, field, StateManager } from "../src/index";
-
-class Root {
-    static Type = 'Application.Root';
-    type = Root.Type;
-
-    constructor(
-        public identifier: string
-    ) { }
-}
-
-class Item {
-    static Type = 'Application.Item';
-    type = Item.Type;
-
-    constructor(
-        public root: Root,
-        public createdAt: Date | string
-    ) { }
-
-    static inRoot(r: Root) {
-        return Jinaga.match(<Item>{
-            type: Item.Type,
-            root: r
-        }).suchThat(Jinaga.not(Item.isDeleted));
-    }
-
-    static isDeleted(i: Item) {
-        return Jinaga.exists(<ItemDeleted>{
-            type: ItemDeleted.Type,
-            item: i
-        });
-    }
-}
-
-class ItemDeleted {
-    static Type = 'Application.Item.Deleted';
-    type = ItemDeleted.Type;
-
-    constructor(
-        public item: Item
-    ) { }
-}
-
-class SubItem {
-    static Type = 'Application.SubItem';
-    type = SubItem.Type;
-
-    constructor(
-        public item: Item,
-        public cretedAt: Date | string
-    ) { }
-
-    static inItem(i: Item) {
-        return Jinaga.match(<SubItem> {
-            type: SubItem.Type,
-            item: i
-        });
-    }
-}
-
-class SubSubItem {
-    static Type = 'Application.SubSubItem';
-    type = SubSubItem.Type;
-
-    constructor(
-        public subItem: SubItem,
-        public id: string
-    ) { }
-
-    static inSubItem(si: SubItem) {
-        return Jinaga.match(<SubSubItem>{
-            type: SubSubItem.Type,
-            subItem: si
-        });
-    }
-}
-
-interface SubSubItemViewModel {
-    id: string;
-}
-
-interface SubItemViewModel {
-    createdAt: Date | string;
-    subSubItems: SubSubItemViewModel[];
-}
-
-interface ItemViewModel {
-    key: string;
-    fact: Item;
-    subItems: SubItemViewModel[]
-}
-
-interface ApplicationState {
-    items: ItemViewModel[];
-}
+import { Item, ItemDeleted, Root, SubItem, SubSubItem } from "./model";
+import { ApplicationState } from "./viewModel";
 
 class Application {
     state: ApplicationState;
@@ -114,12 +21,12 @@ class Application {
     componentDidMount(j: Jinaga) {
         const root = new Root('home');
         this.watch = StateManager.forComponent(this, root, j, [
-            collection('items', Jinaga.for(Item.inRoot), i => i.key, [
+            collection('items', j.for(Item.inRoot), i => i.key, [
                 field('key', i => j.hash(i)),
                 field('fact', i => i),
-                collection('subItems', Jinaga.for(SubItem.inItem), s => s.createdAt, [
+                collection('subItems', j.for(SubItem.inItem), s => s.createdAt, [
                     field('createdAt', s => s.cretedAt),
-                    collection('subSubItems', Jinaga.for(SubSubItem.inSubItem), ssi => ssi.id, [
+                    collection('subSubItems', j.for(SubSubItem.inSubItem), ssi => ssi.id, [
                         field('id', ssi => ssi.id)
                     ])
                 ])
@@ -185,7 +92,7 @@ describe('Application State', () => {
         expect(application.state.items[0].subItems[0].createdAt).to.equal(subItem.cretedAt);
     });
 
-    it('should result sub sub items', async () => {
+    it('should resolve sub sub items', async () => {
         const item = await j.fact(new Item(new Root('home'), new Date()));
         const subItem = await j.fact(new SubItem(item, new Date()));
         await j.fact(new SubSubItem(subItem, 'reindeer flotilla'));
