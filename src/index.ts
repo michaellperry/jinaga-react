@@ -1,4 +1,5 @@
 import { Jinaga, Preposition, Watch } from "jinaga";
+import { useEffect, useState } from "react";
 
 export interface StatefulComponent<S> {
     state: S;
@@ -30,6 +31,44 @@ export interface FieldSpecificationComplete<Model, ViewModel, ChildModel, Parent
 
 export type FieldSpecification<Model, ViewModel> =
     FieldSpecificationComplete<Model, ViewModel, any, any, any>;
+
+export function useJinaga<Model, ViewModel>(
+    model: Model,
+    j: Jinaga,
+    spec: FieldSpecification<Model, ViewModel>[]
+) : ViewModel {
+    const [ state, setState ] = useState(initialState);
+
+    useEffect(() => {
+        function mutator(_: undefined, transformer: Transformer<ViewModel>) {
+            setState(state => transformer(state));
+        }
+    
+        function beginWatch<ChildModel, Id>(
+            preposition: Preposition<Model, ChildModel>,
+            resultAdded: (parent: undefined, child: ChildModel) => ViewModelPath<undefined, Id>,
+            resultRemoved: (path: ViewModelPath<undefined, Id>) => void
+        ) {
+            return j.watch(model, preposition, c => resultAdded(undefined, c), resultRemoved);
+        }
+
+        const watches = spec
+            .map(s => s.createWatch(beginWatch, mutator))
+            .reduce((a, b) => a.concat(b));
+
+        return () => {
+            watches.forEach(watch => watch.stop());
+        };
+    }, [model]);
+
+    return state;
+
+    function initialState() {
+        return spec.reduce(
+            (vm, s) => s.initialize(model, vm),
+            <ViewModel>{});
+    }
+}
 
 /**
  * Manages state for a React component.
