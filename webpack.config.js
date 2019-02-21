@@ -25,5 +25,8 @@ module.exports = {
         alias: {
             "jinaga": "jinaga/dist/jinaga"
         }
+    },
+    externals: {
+        jinaga: 'jinaga'
     }
 };

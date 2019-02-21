@@ -31,6 +31,12 @@ export interface FieldSpecificationComplete<Model, ViewModel, ChildModel, Parent
 export type FieldSpecification<Model, ViewModel> =
     FieldSpecificationComplete<Model, ViewModel, any, any, any>;
 
+/**
+ * Manages state for a React component.
+ * Declare a private field in the component class.
+ * The `Model` type is the starting Jinaga fact.
+ * The `ViewModel` type is the type of the React component state.
+ */
 export class StateManager<Model, ViewModel> {
     private watches: Watch<Model, any>[] = [];
 
@@ -41,6 +47,17 @@ export class StateManager<Model, ViewModel> {
         private spec: FieldSpecification<Model, ViewModel>[]
     ) { }
 
+    /**
+     * Create a state manager for a React component.
+     * Call this function in the constructor.
+     * Use `initialState` to initialize the `state` of the component.
+     * Call `start` in `componentDidMount`, and `stop` in `componentWillUnmount`.
+     * 
+     * @param component A React component
+     * @param model The starting fact for the specifications
+     * @param j An instance of Jinaga
+     * @param spec Specifications for all of the members of the component's state
+     */
     static forComponent<Model, ViewModel>(
         component: StatefulComponent<ViewModel>,
         model: Model,
@@ -53,6 +70,10 @@ export class StateManager<Model, ViewModel> {
         return new StateManager<Model, ViewModel>(mutator, model, j, spec);
     }
 
+    /**
+     * Start the watches defined in the specifications.
+     * Call this function in `componentDidMount`.
+     */
     start() {
         const j = this.j;
         const model = this.model;
@@ -71,11 +92,19 @@ export class StateManager<Model, ViewModel> {
             .reduce((a, b) => a.concat(b));
     }
 
+    /**
+     * Stop all of the watches.
+     * Call this function in `componentWillUnmount`.
+     */
     stop() {
         this.watches.forEach(watch => watch.stop());
         this.watches = [];
     }
 
+    /**
+     * Get the initial state of the component.
+     * Call this function in the constructor and assign the result to `this.state`.
+     */
     initialState() {
         return this.spec.reduce(
             (vm, s) => s.initialize(this.model, vm),
@@ -85,6 +114,18 @@ export class StateManager<Model, ViewModel> {
 
 export type Element<A> = A extends Array<infer E> ? E : never;
 
+/**
+ * Set up a collection of child view models.
+ * The associated field in the parent view model is an array of children.
+ * Declare the specifications for the child fields.
+ * Children must have a field that uniquely identifies them, such as a hash.
+ * Declare a hash using systax such as `field('key', x => j.hash(x))`.
+ * 
+ * @param field The name of the field in the parent view model
+ * @param preposition A Jinaga preposition using `j.for`
+ * @param key A lambda that identifies the field of the child object which uniquely identifies it
+ * @param spec Specifications for the fields of child objects
+ */
 export function collection<
     Model,
     ViewModel,
@@ -154,6 +195,17 @@ export function collection<
     };
 }
 
+/**
+ * Set up a view model field that holds the value of a Jinaga property.
+ * The property follows the pattern of a successor having a value and an array of prior properties.
+ * Provide a preposition that uses `suchThat` to exclude facts that appear in a prior array.
+ * If a conflict occurs, this specification will select the last fact is sees, which may be different from another node.
+ * 
+ * @param field The name of the field in the view model
+ * @param preposition A Jinaga preposition using `j.for`
+ * @param selector A lambda that selects the value of the property from the fact
+ * @param initialValue The value that the property has when no facts satisfy the preposition
+ */
 export function property<
     Model,
     ViewModel,
@@ -194,6 +246,12 @@ export function property<
 export interface Mutable<Fact, T> {
     candidates: { [hash: string]: Fact };
     value: T;
+}
+
+export function prior<Fact, T>(mutable: Mutable<Fact, T>) {
+    return Object
+        .keys(mutable.candidates)
+        .map(key => mutable.candidates[key]);
 }
 
 export function mutable<
