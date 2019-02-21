@@ -1,4 +1,5 @@
-import { Item } from "./model";
+import { Mutable } from "../src";
+import { Item, Name } from "./model";
 
 export interface SubSubItemViewModel {
     id: string;
@@ -17,6 +18,6 @@ export interface ItemViewModel {
 
 export interface ApplicationState {
     name: string;
-    nameWithConflicts: string;
+    nameWithConflicts: Mutable<Name, string>;
     items: ItemViewModel[];
 }

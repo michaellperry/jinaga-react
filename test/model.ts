@@ -90,6 +90,13 @@ export class Name {
         return j.match(<Name>{
             type: Name.Type,
             root: r
+        }).suchThat(Name.isCurrent);
+    }
+
+    static isCurrent(n: Name) {
+        return j.notExists(<Name> {
+            type: Name.Type,
+            prior: [n]
         });
     }
 }

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Jinaga, JinagaBrowser } from "jinaga";
-import { collection, field, property, StateManager } from "../src/index";
+import { collection, field, mutable, property, StateManager } from "../src/index";
 import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 
@@ -11,7 +11,10 @@ class Application {
     constructor() {
         this.state = {
             name: '',
-            nameWithConflicts: '',
+            nameWithConflicts: {
+                candidates: {},
+                value: ''
+            },
             items: []
         };
     }
@@ -24,7 +27,9 @@ class Application {
         const root = new Root('home');
         this.watch = StateManager.forComponent(this, root, j, [
             property('name', j.for(Name.inRoot), n => n.value, ''),
-            property('nameWithConflicts', j.for(Name.inRoot), n => n.value, ''),
+            mutable('nameWithConflicts', j.for(Name.inRoot), names => names
+                .map(n => n.value)
+                .join(', ')),
             collection('items', j.for(Item.inRoot), i => i.key, [
                 field('key', i => j.hash(i)),
                 field('fact', i => i),
@@ -122,10 +127,25 @@ describe('Application State', () => {
         expect(application.state.name).to.equal('Modified');
     });
 
-    it('should apply reducer in a conflict', async () => {
+    it('should resolve mutable', async () => {
+        await j.fact(new Name(new Root('home'), 'Home', []));
+        expect(application.state.nameWithConflicts.value).to.equal('Home');
+        expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
+    });
+
+    it('should replace previous value in mutable', async () => {
+        const root = await j.fact(new Root('home'));
+        const first = await j.fact(new Name(root, 'Home', []));
+        await j.fact(new Name(root, 'Modified', [ first ]));
+        expect(application.state.nameWithConflicts.value).to.equal('Modified');
+        expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
+    });
+
+    it('should apply resolver in a conflict', async () => {
         const root = await j.fact(new Root('home'));
         await j.fact(new Name(root, 'Home', []));
         await j.fact(new Name(root, 'Modified', []));
-        expect(application.state.nameWithConflicts).to.equal('Home, Modified');
+        expect(application.state.nameWithConflicts.value).to.equal('Home, Modified');
+        expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(2);
     });
 });
