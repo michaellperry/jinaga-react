@@ -2,7 +2,10 @@ import { expect } from "chai";
 import { JinagaBrowser } from "jinaga";
 import { JSDOM } from "jsdom";
 import { renderHook } from "react-hooks-testing-library";
-import { collection, field, property, useJinaga } from "../src/index";
+import { collection } from "../src/collection";
+import { useJinaga } from "../src/hooks";
+import { field } from "../src/field";
+import { property } from "../src/property";
 import { Item, Name, Root } from "./model";
 import { ApplicationState } from "./viewModel";
 
@@ -16,7 +19,7 @@ describe('useJinaga', () => {
     it('should initialize state', async () => {
         const j = JinagaBrowser.create({});
         const root = await j.fact(new Root('home'));
-        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(root,j, [
+        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(j, root, [
             property('name', j.for(Name.inRoot), n => n.value, 'initial name')
         ]));
 
@@ -28,7 +31,7 @@ describe('useJinaga', () => {
     it('should initialize children', async () => {
         const j = JinagaBrowser.create({});
         const root = await j.fact(new Root('home'));
-        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(root,j, [
+        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(j, root, [
             collection('items', j.for(Item.inRoot), i => i.key, [
                 field('key', i => j.hash(i))
             ])
@@ -48,7 +51,7 @@ describe('useJinaga', () => {
     it('should update a property', async () => {
         const j = JinagaBrowser.create({});
         const root = await j.fact(new Root('home'));
-        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(root,j, [
+        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(j, root, [
             property('name', j.for(Name.inRoot), n => n.value, '')
         ]));
 
@@ -64,7 +67,7 @@ describe('useJinaga', () => {
     it('should stop watching when unmounted', async () => {
         const j = JinagaBrowser.create({});
         const root = await j.fact(new Root('home'));
-        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(root,j, [
+        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(j, root, [
             property('name', j.for(Name.inRoot), n => n.value, '')
         ]));
 

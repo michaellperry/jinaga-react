@@ -1,6 +1,10 @@
 import { expect } from "chai";
 import { Jinaga, JinagaBrowser } from "jinaga";
-import { collection, field, mutable, property, StateManager } from "../src/index";
+import { collection } from "../src/collection";
+import { field } from "../src/field";
+import { mutable } from "../src/mutable";
+import { property } from "../src/property";
+import { StateManager } from "../src/state-manager";
 import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 
@@ -10,7 +14,7 @@ class Application {
 
     constructor(j: Jinaga) {
         const root = new Root('home');
-        this.watch = StateManager.forComponent(this, root, j, [
+        this.watch = StateManager.forComponent(this, j, root, [
             property('name', j.for(Name.inRoot), n => n.value, ''),
             mutable('nameWithConflicts', j.for(Name.inRoot), names => names
                 .map(n => n.value)
