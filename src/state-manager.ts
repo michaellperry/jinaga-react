@@ -29,8 +29,8 @@ export class StateManager<Model, ViewModel> {
      * Call `start` in `componentDidMount`, and `stop` in `componentWillUnmount`.
      * 
      * @param component A React component
-     * @param model The starting fact for the specifications
      * @param j An instance of Jinaga
+     * @param model The starting fact for the specifications
      * @param spec Specifications for all of the members of the component's state
      */
     static forComponent<Model, ViewModel>(
