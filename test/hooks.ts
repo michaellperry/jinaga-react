@@ -2,10 +2,7 @@ import { expect } from "chai";
 import { JinagaBrowser } from "jinaga";
 import { JSDOM } from "jsdom";
 import { renderHook } from "react-hooks-testing-library";
-import { collection } from "../src/collection";
-import { useJinaga } from "../src/hooks";
-import { field } from "../src/field";
-import { property } from "../src/property";
+import { collection, field, property, useJinaga } from "../src";
 import { Item, Name, Root } from "./model";
 import { ApplicationState } from "./viewModel";
 

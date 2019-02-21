@@ -1,4 +1,4 @@
-import { Mutable } from "../src/mutable";
+import { Mutable } from "../src";
 import { Item, Name } from "./model";
 
 export interface SubSubItemViewModel {

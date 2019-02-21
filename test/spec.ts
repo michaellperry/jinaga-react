@@ -1,10 +1,6 @@
 import { expect } from "chai";
 import { Jinaga, JinagaBrowser } from "jinaga";
-import { collection } from "../src/collection";
-import { field } from "../src/field";
-import { mutable } from "../src/mutable";
-import { property } from "../src/property";
-import { StateManager } from "../src/state-manager";
+import { collection, field, mutable, property, StateManager } from "../src";
 import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 
