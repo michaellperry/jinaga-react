@@ -5,10 +5,6 @@ export interface StatefulComponent<S> {
     setState: (state: S) => void;
 };
 
-export interface Stoppable {
-    stop(): void;
-}
-
 export type ViewModelPath<Parent, Id> = {
     parent: Parent,
     id: Id
@@ -35,9 +31,14 @@ export interface FieldSpecificationComplete<Model, ViewModel, ChildModel, Parent
 export type FieldSpecification<Model, ViewModel> =
     FieldSpecificationComplete<Model, ViewModel, any, any, any>;
 
-export class StateManager {
+export class StateManager<Model, ViewModel> {
+    private watches: Watch<Model, any>[] = [];
+
     constructor(
-        private watches: Stoppable[]
+        private mutator: Mutator<undefined, ViewModel>,
+        private model: Model,
+        private j: Jinaga,
+        private spec: FieldSpecification<Model, ViewModel>[]
     ) { }
 
     static forComponent<Model, ViewModel>(
@@ -46,6 +47,16 @@ export class StateManager {
         j: Jinaga,
         spec: FieldSpecification<Model, ViewModel>[]
     ) {
+        function mutator(_: undefined, transformer: Transformer<ViewModel>) {
+            component.setState(transformer(component.state));
+        }
+        return new StateManager<Model, ViewModel>(mutator, model, j, spec);
+    }
+
+    start() {
+        const j = this.j;
+        const model = this.model;
+
         function beginWatch<ChildModel, Id>(
             preposition: Preposition<Model, ChildModel>,
             resultAdded: (parent: undefined, child: ChildModel) => ViewModelPath<undefined, Id>,
@@ -53,18 +64,22 @@ export class StateManager {
         ) {
             return j.watch(model, preposition, c => resultAdded(undefined, c), resultRemoved);
         }
-        function mutator(path: undefined, transformer: Transformer<ViewModel>) {
-            component.setState(transformer(component.state));
-        }
-        const watches = spec
-            .map(s => s.createWatch(beginWatch, mutator))
+
+        this.watches.forEach(watch => watch.stop());
+        this.watches = this.spec
+            .map(s => s.createWatch(beginWatch, this.mutator))
             .reduce((a, b) => a.concat(b));
-        return new StateManager(watches);
     }
 
     stop() {
         this.watches.forEach(watch => watch.stop());
         this.watches = [];
+    }
+
+    initialState() {
+        return this.spec.reduce(
+            (vm, s) => s.initialize(this.model, vm),
+            <ViewModel>{});
     }
 }
 

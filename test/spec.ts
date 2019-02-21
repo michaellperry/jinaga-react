@@ -6,24 +6,9 @@ import { ApplicationState } from "./viewModel";
 
 class Application {
     state: ApplicationState;
-    private watch?: StateManager;
+    private watch: StateManager<Root, ApplicationState>;
 
-    constructor() {
-        this.state = {
-            name: '',
-            nameWithConflicts: {
-                candidates: {},
-                value: ''
-            },
-            items: []
-        };
-    }
-
-    setState(state: ApplicationState) {
-        this.state = state;
-    }
-
-    componentDidMount(j: Jinaga) {
+    constructor(j: Jinaga) {
         const root = new Root('home');
         this.watch = StateManager.forComponent(this, root, j, [
             property('name', j.for(Name.inRoot), n => n.value, ''),
@@ -41,12 +26,20 @@ class Application {
                 ])
             ])
         ]);
+
+        this.state = this.watch.initialState();
+    }
+
+    setState(state: ApplicationState) {
+        this.state = state;
+    }
+
+    componentDidMount() {
+        this.watch.start();
     }
 
     componentWillUnmount() {
-        if (this.watch) {
-            this.watch.stop();
-        }
+        this.watch.stop();
     }
 }
 
@@ -56,8 +49,8 @@ describe('Application State', () => {
 
     beforeEach(() => {
         j = JinagaBrowser.create({});
-        application = new Application();
-        application.componentDidMount(j);
+        application = new Application(j);
+        application.componentDidMount();
     });
 
     afterEach(() => {
