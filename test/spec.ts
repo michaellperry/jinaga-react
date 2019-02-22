@@ -23,6 +23,9 @@ class Application {
                     collection('subSubItems', j.for(SubSubItem.inSubItem), ssi => ssi.id, [
                         field('id', ssi => ssi.id)
                     ])
+                ]),
+                projection('madeUp', [
+                    field('key', i => j.hash(i))
                 ])
             ]),
             projection('recycleBin', [
@@ -63,7 +66,7 @@ describe('Application State', () => {
         application.componentWillUnmount();
     })
 
-    it('should watch', () => {
+    it('should initialize view model', () => {
         expect(application.state).to.not.be.null;
     });
 
@@ -158,5 +161,10 @@ describe('Application State', () => {
         await j.fact(new ItemDeleted(item));
         expect(application.state.recycleBin.deletedItems.length).to.equal(1);
         expect(application.state.recycleBin.deletedItems[0].fact).to.not.be.null;
+    });
+
+    it('should initialize child projections', async () => {
+        const item = await j.fact(new Item(new Root('home'), new Date()));
+        expect(application.state.items[0].madeUp.key).to.equal(j.hash(item));
     });
 });

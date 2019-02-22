@@ -75,4 +75,33 @@ describe('useJinaga', () => {
         await j.fact(new Name(root, 'Jabberwocky', [first]));
         expect(result.current.name).to.equal('Bandersnatch');
     });
+
+    it('should reset when model changes', async () => {
+        const j = JinagaBrowser.create({});
+        const root = await j.fact(new Root('home'));
+        const { result, unmount, rerender } = renderHook(({ root }) =>
+            useJinaga<Root, ApplicationState>(j, root, [
+                collection('items', j.for(Item.inRoot), i => i.key, [
+                    field('key', i => j.hash(i))
+                ])
+            ]),
+            { initialProps: { root } });
+
+        expect(result.current.items.length).to.equal(0);
+
+        await j.fact(new Item(root, new Date()));
+        expect(result.current.items.length).to.equal(1);
+
+        const newRoot = await j.fact(new Root('away'));
+        rerender({ root: newRoot });
+        expect(result.current.items.length).to.equal(0);
+
+        await j.fact(new Item(root, new Date()));
+        expect(result.current.items.length).to.equal(0);
+
+        await j.fact(new Item(newRoot, new Date()));
+        expect(result.current.items.length).to.equal(1);
+
+        unmount();
+    });
 });

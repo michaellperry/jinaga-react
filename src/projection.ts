@@ -1,5 +1,13 @@
 import { FieldSpecification, Transformer } from "./specifications";
 
+/**
+ * Set up a child view model.
+ * The associated field in the parent view model is a single child.
+ * Declare the specifications for the child fields.
+ * 
+ * @param field The name of the field in the parent view model
+ * @param spec Specifications for the fields of the child view model
+ */
 export function projection<
     Model,
     ViewModel,

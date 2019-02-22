@@ -10,10 +10,15 @@ export interface SubItemViewModel {
     subSubItems: SubSubItemViewModel[];
 }
 
+export interface MadeUpViewModel {
+    key: string;
+}
+
 export interface ItemViewModel {
     key: string;
     fact: Item;
-    subItems: SubItemViewModel[]
+    subItems: SubItemViewModel[];
+    madeUp: MadeUpViewModel;
 }
 
 export interface DeletedItemViewModel {

@@ -37,6 +37,7 @@ export function useJinaga<Model, ViewModel>(
 
         return () => {
             watches.forEach(watch => watch.stop());
+            setState(initialState());
         };
     }, [model]);
 
