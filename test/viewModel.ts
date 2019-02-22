@@ -16,8 +16,18 @@ export interface ItemViewModel {
     subItems: SubItemViewModel[]
 }
 
+export interface DeletedItemViewModel {
+    key: string;
+    fact: Item;
+}
+
+export interface RecycleBin {
+    deletedItems: DeletedItemViewModel[];
+}
+
 export interface ApplicationState {
     name: string;
     nameWithConflicts: Mutable<Name, string>;
     items: ItemViewModel[];
+    recycleBin: RecycleBin;
 }

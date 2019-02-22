@@ -25,6 +25,13 @@ export class Item {
         }).suchThat(j.not(Item.isDeleted));
     }
 
+    static deletedFromRoot(r: Root) {
+        return j.match(<Item>{
+            type: Item.Type,
+            root: r
+        }).suchThat(Item.isDeleted);
+    }
+
     static isDeleted(i: Item) {
         return j.exists(<ItemDeleted>{
             type: ItemDeleted.Type,

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Jinaga, JinagaBrowser } from "jinaga";
-import { collection, field, mutable, property, StateManager } from "../src";
+import { collection, field, mutable, projection, property, StateManager } from "../src";
 import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 
@@ -23,6 +23,12 @@ class Application {
                     collection('subSubItems', j.for(SubSubItem.inSubItem), ssi => ssi.id, [
                         field('id', ssi => ssi.id)
                     ])
+                ])
+            ]),
+            projection('recycleBin', [
+                collection('deletedItems', j.for(Item.deletedFromRoot), i => i.key, [
+                    field('key', i => j.hash(i)),
+                    field('fact', i => i)
                 ])
             ])
         ]);
@@ -140,5 +146,17 @@ describe('Application State', () => {
         await j.fact(new Name(root, 'Modified', []));
         expect(application.state.nameWithConflicts.value).to.equal('Home, Modified');
         expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(2);
+    });
+
+    it('should initialize projection', () => {
+        expect(application.state.recycleBin).to.not.be.undefined;
+        expect(application.state.recycleBin.deletedItems.length).to.equal(0);
+    });
+
+    it('should resolve projection', async () => {
+        const item = await j.fact(new Item(new Root('home'), new Date()));
+        await j.fact(new ItemDeleted(item));
+        expect(application.state.recycleBin.deletedItems.length).to.equal(1);
+        expect(application.state.recycleBin.deletedItems[0].fact).to.not.be.null;
     });
 });
