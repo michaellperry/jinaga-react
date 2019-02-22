@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "React binding helpers for Jinaga",
   "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "clean": "rm -rf ./dist",
     "build": "webpack",
