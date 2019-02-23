@@ -28,6 +28,7 @@ module.exports = {
         }
     },
     externals: {
-        jinaga: 'jinaga'
+        jinaga: 'jinaga',
+        react: 'react'
     }
 };
