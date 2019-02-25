@@ -49,6 +49,31 @@ export class ItemDeleted {
     ) { }
 }
 
+export class ItemDescription {
+    static Type = 'Application.Item.Description';
+    type = ItemDescription.Type;
+
+    constructor(
+        public item: Item,
+        public value: string,
+        public prior: ItemDescription[]
+    ) { }
+
+    static ofItem(i: Item) {
+        return j.match(<ItemDescription>{
+            type: ItemDescription.Type,
+            item: i
+        }).suchThat(ItemDescription.isCurrent);
+    }
+
+    static isCurrent(d: ItemDescription) {
+        return j.notExists(<ItemDescription>{
+            type: ItemDescription.Type,
+            prior: [d]
+        });
+    }
+}
+
 export class SubItem {
     static Type = 'Application.SubItem';
     type = SubItem.Type;

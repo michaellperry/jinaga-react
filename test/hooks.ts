@@ -3,7 +3,8 @@ import { JinagaBrowser } from "jinaga";
 import { JSDOM } from "jsdom";
 import { renderHook } from "react-hooks-testing-library";
 import { collection, field, property, useJinaga } from "../src";
-import { Item, Name, Root } from "./model";
+import { ascending } from "../src/collection";
+import { Item, Name, Root, ItemDescription } from "./model";
 import { ApplicationState } from "./viewModel";
 
 const { window } = new JSDOM('<!doctype html><html><body></body></html>');
@@ -101,6 +102,54 @@ describe('useJinaga', () => {
 
         await j.fact(new Item(newRoot, new Date()));
         expect(result.current.items.length).to.equal(1);
+
+        unmount();
+    });
+
+    it('should sort based on immutable field', async () => {
+        const j = JinagaBrowser.create({});
+        const root = await j.fact(new Root('home'));
+        const { result, unmount } = renderHook(() =>
+            useJinaga<Root, ApplicationState>(j, root, [
+                collection('items', j.for(Item.inRoot), i => i.key, ascending(i => i.fact.createdAt), [
+                    field('key', i => j.hash(i)),
+                    field('fact', i => i)
+                ])
+            ]));
+
+        await j.fact(new Item(root, new Date('2019-02-25T10:35:00.000Z')));
+        await j.fact(new Item(root, new Date('2019-02-25T10:30:00.000Z')));
+
+        expect(result.current.items[0].fact.createdAt).to.equal('2019-02-25T10:30:00.000Z');
+        expect(result.current.items[1].fact.createdAt).to.equal('2019-02-25T10:35:00.000Z');
+
+        unmount();
+    });
+
+    it('should sort based on mutable property', async () => {
+        const j = JinagaBrowser.create({});
+        const root = await j.fact(new Root('home'));
+        const { result, unmount } = renderHook(() =>
+            useJinaga<Root, ApplicationState>(j, root, [
+                collection('items', j.for(Item.inRoot), i => i.key, ascending(i => i.description), [
+                    field('key', i => j.hash(i)),
+                    field('fact', i => i),
+                    property('description', j.for(ItemDescription.ofItem), d => d.value, '')
+                ])
+            ]));
+
+        const item1 = await j.fact(new Item(root, new Date('2019-02-25T10:35:00.000Z')));
+        await j.fact(new ItemDescription(item1, 'Bravo', []));
+        const item2 = await j.fact(new Item(root, new Date('2019-02-25T10:30:00.000Z')));
+        const description2 = await j.fact(new ItemDescription(item2, 'Alpha', []));
+
+        expect(result.current.items[0].fact.createdAt).to.equal('2019-02-25T10:30:00.000Z');
+        expect(result.current.items[1].fact.createdAt).to.equal('2019-02-25T10:35:00.000Z');
+
+        await j.fact(new ItemDescription(item2, 'Charley', [description2]));
+
+        expect(result.current.items[0].fact.createdAt).to.equal('2019-02-25T10:35:00.000Z');
+        expect(result.current.items[1].fact.createdAt).to.equal('2019-02-25T10:30:00.000Z');
 
         unmount();
     });

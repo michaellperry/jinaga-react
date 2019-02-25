@@ -16,6 +16,7 @@ export interface MadeUpViewModel {
 
 export interface ItemViewModel {
     key: string;
+    description: string;
     fact: Item;
     subItems: SubItemViewModel[];
     madeUp: MadeUpViewModel;
