@@ -17,7 +17,7 @@ export function field<
     selector: (m: Model) => ViewModel[K]
 ) : FieldSpecification<Model, ViewModel> {
     return {
-        initialize: (m, vm) => ({ ...vm, [field]: selector(m) }),
+        initialize: (m, vm) => ({ ...vm, [field]: m ? selector(m) : null }),
         createWatch: (beginWatch, mutator) => []
     };
 }

@@ -26,6 +26,17 @@ describe('useJinaga', () => {
         unmount();
     });
 
+    it('should tolerate null', () => {
+        const j = JinagaBrowser.create({});
+        const { result, unmount } = renderHook(() => useJinaga<Root, ApplicationState>(j, null, [
+            property('name', j.for(Name.inRoot), n => n.value, 'initial name')
+        ]));
+
+        expect(result.current.name).to.equal('initial name');
+
+        unmount();
+    });
+
     it('should initialize children', async () => {
         const j = JinagaBrowser.create({});
         const root = await j.fact(new Root('home'));

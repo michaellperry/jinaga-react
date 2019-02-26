@@ -16,7 +16,7 @@ export type Transformer<ViewModel> = (oldViewModel: ViewModel) => ViewModel;
 export type Mutator<Path, ViewModel> = (path: Path, transformer: Transformer<ViewModel>) => void;
 
 export interface FieldSpecificationComplete<Model, ViewModel, ChildModel, Parent, Path> {
-    initialize(m: Model, vm: ViewModel): ViewModel;
+    initialize(m: Model | null, vm: ViewModel): ViewModel;
     createWatch(
         beginWatch: BeginWatch<Model, ChildModel, Parent, Path>,
         mutator: Mutator<Parent, ViewModel>

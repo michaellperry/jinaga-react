@@ -14,7 +14,7 @@ import { FieldSpecification, Transformer, ViewModelPath } from "./specifications
  */
 export function useJinaga<Model, ViewModel>(
     j: Jinaga,
-    model: Model,
+    model: Model | null,
     spec: FieldSpecification<Model, ViewModel>[]
 ): ViewModel {
     const [state, setState] = useState(initialState);
@@ -31,9 +31,9 @@ export function useJinaga<Model, ViewModel>(
             return j.watch(model, preposition, c => resultAdded(undefined, c), resultRemoved);
         }
 
-        const watches = spec
+        const watches = model ? spec
             .map(s => s.createWatch(beginWatch, mutator))
-            .reduce((a, b) => a.concat(b));
+            .reduce((a, b) => a.concat(b)) : [];
 
         return () => {
             watches.forEach(watch => watch.stop());
