@@ -1,4 +1,4 @@
-export { collection, Element } from "./collection";
+export { ascending, collection, Comparer, descending, Element } from "./collection";
 export { field } from "./field";
 export { useJinaga } from "./hooks";
 export { mutable, Mutable, prior } from "./mutable";
