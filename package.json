@@ -1,6 +1,6 @@
 {
   "name": "jinaga-react",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "React binding helpers for Jinaga",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
@@ -9,7 +9,8 @@
     "build": "webpack",
     "test": "mocha --opts mocha.opts",
     "test:watch": "mocha --opts mocha.opts --watch",
-    "dev": "nodemon -e ts -w ./src -x npm run test:watch"
+    "dev": "nodemon -e ts -w ./src -x npm run test:watch",
+    "prepublishOnly": "npm run clean && npm run build && npm run test"
   },
   "keywords": [
     "react",
@@ -19,11 +20,11 @@
   "license": "MIT",
   "devDependencies": {
     "@types/chai": "^4.1.7",
-    "@types/jsdom": "^12.2.2",
+    "@types/jsdom": "^12.2.3",
     "@types/mocha": "^5.2.6",
-    "@types/react": "^16.8.5",
+    "@types/react": "^16.8.6",
     "chai": "^4.2.0",
-    "jinaga": "^2.3.2",
+    "jinaga": "^2.3.3",
     "jsdom": "^13.2.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.10",
@@ -33,7 +34,7 @@
     "ts-loader": "^5.3.3",
     "ts-node": "^8.0.2",
     "typescript": "^3.3.3333",
-    "webpack": "^4.29.5",
+    "webpack": "^4.29.6",
     "webpack-cli": "^3.2.3"
   },
   "peerDependencies": {
