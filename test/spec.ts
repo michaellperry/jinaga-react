@@ -1,64 +1,58 @@
+import { Component } from 'react';
 import { expect } from "chai";
 import { Jinaga, JinagaBrowser } from "jinaga";
-import { collection, field, mutable, projection, property, StateManager } from "../src";
+import { collection, field, mutable, projection, property, connectJinaga } from "../src";
 import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 
-class Application {
-    state: ApplicationState;
-    private watch: StateManager<Root, ApplicationState>;
+class Application extends Component<{ jinaga: Jinaga }, any, any> {
+    context: { jinaga: Jinaga };
+    private watch: Application;
 
-    constructor(j: Jinaga) {
+    constructor(props: { jinaga: Jinaga }) {
+        super(props);
+
+        this.context = { jinaga: props.jinaga };
+
         const root = new Root('home');
-        this.watch = StateManager.forComponent(this, j, root, [
-            property('name', j.for(Name.inRoot), n => n.value, ''),
-            mutable('nameWithConflicts', j.for(Name.inRoot), names => names
-                .map(n => n.value)
-                .join(', ')),
-            collection('items', j.for(Item.inRoot), i => i.key, [
-                field('key', i => j.hash(i)),
-                field('fact', i => i),
-                collection('subItems', j.for(SubItem.inItem), s => s.createdAt, [
-                    field('createdAt', s => s.cretedAt),
-                    collection('subSubItems', j.for(SubSubItem.inSubItem), ssi => ssi.id, [
-                        field('id', ssi => ssi.id)
+        this.watch = connectJinaga<Root, ApplicationState>(j => ({
+            model: root,
+            specs: [
+                property('name', j.for(Name.inRoot), n => n.value, ''),
+                mutable('nameWithConflicts', j.for(Name.inRoot), names => names
+                    .map(n => n.value)
+                    .join(', ')),
+                collection('items', j.for(Item.inRoot), i => i.key, [
+                    field('key', i => j.hash(i)),
+                    field('fact', i => i),
+                    collection('subItems', j.for(SubItem.inItem), s => s.createdAt, [
+                        field('createdAt', s => s.cretedAt),
+                        collection('subSubItems', j.for(SubSubItem.inSubItem), ssi => ssi.id, [
+                            field('id', ssi => ssi.id)
+                        ])
+                    ]),
+                    projection('madeUp', [
+                        field('key', i => j.hash(i))
                     ])
                 ]),
-                projection('madeUp', [
-                    field('key', i => j.hash(i))
+                projection('recycleBin', [
+                    collection('deletedItems', j.for(Item.deletedFromRoot), i => i.key, [
+                        field('key', i => j.hash(i)),
+                        field('fact', i => i)
+                    ])
                 ])
-            ]),
-            projection('recycleBin', [
-                collection('deletedItems', j.for(Item.deletedFromRoot), i => i.key, [
-                    field('key', i => j.hash(i)),
-                    field('fact', i => i)
-                ])
-            ])
-        ]);
-
-        this.state = this.watch.initialState();
-    }
-
-    setState(state: ApplicationState) {
-        this.state = state;
-    }
-
-    componentDidMount() {
-        this.watch.start();
-    }
-
-    componentWillUnmount() {
-        this.watch.stop();
+            ]
+        }))(<any>this);
     }
 }
 
 describe('Application State', () => {
-    var j: Jinaga;
+    let j: Jinaga;
     var application: Application;
 
     beforeEach(() => {
         j = JinagaBrowser.create({});
-        application = new Application(j);
+        application = new Application({ jinaga: j });
         application.componentDidMount();
     });
 
@@ -67,7 +61,7 @@ describe('Application State', () => {
     })
 
     it('should initialize view model', () => {
-        expect(application.state).to.not.be.null;
+        expect(application.props).to.not.be.null;
     });
 
     it('should add to a collection', async () => {
@@ -118,7 +112,7 @@ describe('Application State', () => {
     it('should replace previous values', async () => {
         const root = await j.fact(new Root('home'));
         const first = await j.fact(new Name(root, 'Home', []));
-        await j.fact(new Name(root, 'Modified', [ first ]));
+        await j.fact(new Name(root, 'Modified', [first]));
         expect(application.state.name).to.equal('Modified');
     });
 
@@ -138,7 +132,7 @@ describe('Application State', () => {
     it('should replace previous value in mutable', async () => {
         const root = await j.fact(new Root('home'));
         const first = await j.fact(new Name(root, 'Home', []));
-        await j.fact(new Name(root, 'Modified', [ first ]));
+        await j.fact(new Name(root, 'Modified', [first]));
         expect(application.state.nameWithConflicts.value).to.equal('Modified');
         expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
     });

@@ -6,3 +6,5 @@ export { projection } from "./projection";
 export { property } from "./property";
 export { BeginWatch, FieldSpecification, Mutator, Transformer, ViewModelPath } from "./specifications";
 export { StatefulComponent, StateManager } from "./state-manager";
+export { connectJinaga } from './jinagaConnect.jsx';
+export { default as JinagaContext } from './jinagaProvider';
