@@ -4,7 +4,7 @@
         "target": "es5",
         "strict": true,
         "noImplicitAny": true,
-        "strictNullChecks": true,
+        "strictNullChecks": false,
         "allowJs": false,
         "moduleResolution": "node",
         "sourceMap": true,

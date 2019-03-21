@@ -12,7 +12,7 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.ts$/,
+                test: /\.(ts|js)x?$/,
                 include: [
                     path.resolve(__dirname, 'src')
                 ],
@@ -22,7 +22,7 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.js', '.ts'],
+        extensions: ['.js', '.ts', '.jsx', '.tsx'],
         alias: {
             "jinaga": "jinaga/dist/jinaga"
         }

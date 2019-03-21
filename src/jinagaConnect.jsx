@@ -43,4 +43,4 @@ const connectJinaga = (config) => (WrappedComponent) =>
       return <WrappedComponent {...this.props} {...this.state} />;
     }
   };
-export default connectJinaga;
+export { connectJinaga };
