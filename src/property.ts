@@ -1,5 +1,5 @@
 import { Preposition } from "jinaga";
-import { BeginWatch, FieldSpecification, Mutator } from "./specifications";
+import { BeginWatch, FieldMappingSpecification, Mutator } from "./types";
 
 /**
  * Set up a view model field that holds the value of a Jinaga property.
@@ -7,32 +7,21 @@ import { BeginWatch, FieldSpecification, Mutator } from "./specifications";
  * Provide a preposition that uses `suchThat` to exclude facts that appear in a prior array.
  * If a conflict occurs, this specification will select the last fact is sees, which may be different from another node.
  * 
- * @param field The name of the field in the view model
  * @param preposition A Jinaga preposition using `j.for`
  * @param selector A lambda that selects the value of the property from the fact
  * @param initialValue The value that the property has when no facts satisfy the preposition
  */
-export function property<
-    Model,
-    ViewModel,
-    PropertyModel,
-    K extends keyof ViewModel
->(
-    field: K,
-    preposition: Preposition<Model, PropertyModel>,
-    selector: (m: PropertyModel) => ViewModel[K],
-    initialValue: ViewModel[K]
-) : FieldSpecification<Model, ViewModel> {
-    function createWatch<Parent>(
-        beginWatch : BeginWatch<Model, PropertyModel, Parent, Parent>,
-        mutator : Mutator<Parent, ViewModel>
+export function property<M, U, T>(
+    preposition: Preposition<M, U>,
+    selector: (m: U) => T,
+    initialValue: T
+) : FieldMappingSpecification<M, T> {
+    function createWatches<Parent>(
+        beginWatch : BeginWatch<M, Parent>,
+        mutator : Mutator<Parent, T>
     ) {
-        function resultAdded(parent: Parent, child: PropertyModel) {
-            mutator(parent, vm => {
-                const newValue = selector(child);
-                const newViewModel = { ...vm, [field]: newValue };
-                return newViewModel;
-            });
+        function resultAdded(parent: Parent, child: U) {
+            mutator(parent, vm => selector(child));
             return parent;
         }
 
@@ -43,8 +32,9 @@ export function property<
 
         return [watch];
     }
+
     return {
-        initialize: (_, vm) => ({ ...vm, [field]: initialValue }),
-        createWatch
+        initialize: m => initialValue,
+        createWatches
     };
 }

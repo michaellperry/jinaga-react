@@ -1,23 +1,15 @@
-import { FieldSpecification } from "./specifications";
+import { FieldMappingSpecification } from "./types";
 
 /**
  * Set up a field which derives its value from a fact.
- * This can either be a field of the fact as in `field('identifier', x => x.identifier)`,
- * the hash of the fact as in `field('hash', x => j.hash(x))`, or some computation thereof.
+ * This can either be a field of the fact as in `field(x => x.identifier)`,
+ * the hash of the fact as in `field(x => j.hash(x))`, or some computation thereof.
  * 
- * @param field A field of the view model
  * @param selector A lambda that selects the value for that field from a fact
  */
-export function field<
-    Model,
-    ViewModel,
-    K extends keyof ViewModel
->(
-    field: K,
-    selector: (m: Model) => ViewModel[K]
-) : FieldSpecification<Model, ViewModel> {
+export function field<M, T>(selector: (m: M) => T): FieldMappingSpecification<M, T> {
     return {
-        initialize: (m, vm) => ({ ...vm, [field]: m ? selector(m) : null }),
-        createWatch: (beginWatch, mutator) => []
+        initialize: m => m ? selector(m) : null,
+        createWatches: (beginWatch, mutator) => []
     };
 }

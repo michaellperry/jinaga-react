@@ -1,5 +1,5 @@
 import { Jinaga, Preposition } from "jinaga";
-import { BeginWatch, FieldSpecification, Mutator, ViewModelPath } from "./specifications";
+import { BeginWatch, FieldMappingSpecification, Mutator } from "./types";
 
 export interface Mutable<Fact, T> {
     candidates: { [hash: string]: Fact };
@@ -33,29 +33,21 @@ export function prior<Fact, T>(mutable: Mutable<Fact, T>) {
  * array listing all of the candidates.
  * Use the function `prior(candidates)` to produce the array.
  * 
- * @param field The name of the field in the view model
  * @param preposition A Jinaga preposition using `j.for`
  * @param resolver A function that determines a single value given an array of candidate facts
  */
-export function mutable<
-    Model,
-    ViewModel,
-    PropertyModel,
-    K extends keyof ViewModel,
-    ValueType
->(
-    field: K,
-    preposition: Preposition<Model, PropertyModel>,
-    resolver: (candidates: PropertyModel[]) => ValueType
-) : FieldSpecification<Model, ViewModel> {
-    function createWatch<Parent>(
-        beginWatch: BeginWatch<Model, PropertyModel, Parent, ViewModelPath<Parent, string>>,
-        mutator: Mutator<Parent, ViewModel>
+export function mutable<M, U, T>(
+    preposition: Preposition<M, U>,
+    resolver: (candidates: U[]) => T
+) : FieldMappingSpecification<M, Mutable<U, T>> {
+    function createWatches<P>(
+        beginWatch: BeginWatch<M, P>,
+        mutator: Mutator<P, Mutable<U,T>>
     ) {
-        function resultAdded(parent: Parent, child: PropertyModel) {
+        function resultAdded(parent: P, child: U) {
             const hash = Jinaga.hash(child);
-            mutator(parent, (vm) => {
-                const { candidates } : Mutable<PropertyModel, ValueType> = <any>vm[field];
+            mutator(parent, vm => {
+                const { candidates } = vm;
                 const newCandidates = { ...candidates, [hash]: child };
                 const newValue = resolver(Object
                     .keys(newCandidates)
@@ -64,14 +56,14 @@ export function mutable<
                     candidates: newCandidates,
                     value: newValue
                 };
-                return { ...vm, [field]: newMutable };
+                return newMutable;
             });
-            return { parent, id: hash };
+            return {parent, hash};
         }
 
-        function resultRemoved({ parent, id: hash } : ViewModelPath<Parent, string>) {
-            mutator(parent, (vm) => {
-                const { candidates } : Mutable<PropertyModel, ValueType> = <any>vm[field];
+        function resultRemoved({ parent, hash }: { parent: P, hash: string }) {
+            mutator(parent, vm => {
+                const { candidates } = vm;
                 const { [hash]: fact, ...newCandidates } = candidates;
                 const newValue = resolver(Object
                     .keys(newCandidates)
@@ -80,19 +72,19 @@ export function mutable<
                     candidates: newCandidates,
                     value: newValue
                 };
-                return { ...vm, [field]: newMutable };
+                return newMutable;
             });
         }
 
         const watch = beginWatch(preposition, resultAdded, resultRemoved);
-        return [watch];
+        return [ watch ];
     }
 
     return {
-        initialize: (m, vm) => ({ ...vm, [field]: {
+        initialize: m => ({
             candidates: {},
             value: resolver([])
-        } }),
-        createWatch
+        }),
+        createWatches
     }
 }
