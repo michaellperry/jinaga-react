@@ -29,14 +29,12 @@ describe("Application State", () => {
         expect(getByTestId("identifier").innerHTML).toBe("id");
     })
 
-    // it("should resolve properties", async () => {
-    //     await j.fact(new Name(new Root("home"), "Home", []));
-    //     const component = create(<Application fact={root} />);
-    //     expect(component.root
-    //         .find(p => p.type === "p" && p.props.id === "name")
-    //         .props.children
-    //     ).toBe("Home");
-    // });
+    it.only("should resolve properties", async () => {
+        await j.fact(new Name(new Root("home"), "Home", []));
+        const { findByTestId } = render(<Application fact={root} />);
+        const name = await findByTestId("name") as HTMLElement;
+        expect(name.innerText).toBe("Home");
+    });
 
     // it("should add to a collection", async () => {
     //     await j.fact(new Item(new Root("home"), new Date()));

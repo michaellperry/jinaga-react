@@ -9,6 +9,7 @@
     "build": "webpack",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:debug": "node --inspect node_modules/.bin/jest --runInBand",
     "dev": "nodemon -e ts -w ./src -x npm run test:watch",
     "prepublishOnly": "npm run clean && npm run build && npm run test"
   },

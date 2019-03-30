@@ -15,7 +15,7 @@ export function createJinagaComponent<M, VM, P>(
         
         constructor(props: JinagaComponentProps) {
             super(props);
-            this.state = { data: this.initialState() };
+            this.state = { data: undefined };
         }
 
         componentDidMount() {
@@ -29,7 +29,7 @@ export function createJinagaComponent<M, VM, P>(
         componentDidUpdate(prevProps: JinagaComponentProps) {
             if (prevProps.fact !== this.props.fact) {
                 this.stopWatches();
-                this.setState({ data: this.initialState() });
+                this.setState({ data: undefined });
                 this.startWatches();
             }
         }
@@ -40,7 +40,7 @@ export function createJinagaComponent<M, VM, P>(
             const otherProps = rest as P;
             return this.state.data
                 ? <ItemComponent { ...{...this.state.data, ...otherProps} } />
-                : undefined;
+                : <></>;
         }
 
         private initialState(): VM | undefined {
@@ -48,11 +48,14 @@ export function createJinagaComponent<M, VM, P>(
             return fact ? connection.initialState(fact) : undefined;
         }
 
-        private startWatches() {
+        private async startWatches() {
             const model = this.props.fact;
             if (!model) {
                 return;
             }
+
+            this.setState({ data: undefined });
+            let localData = this.initialState() as VM;
 
             function beginWatch<C, V>(
                 preposition: Preposition<M, C>,
@@ -63,15 +66,21 @@ export function createJinagaComponent<M, VM, P>(
             }
 
             const mutator = (parent: undefined, transformer: Transformer<VM>) => {
-                if (this.state.data) {
-                    const newData = transformer(this.state.data);
-                    if (newData !== this.state.data) {
+                const data = this.state.data || localData;
+                const newData = transformer(data);
+                if (newData !== data) {
+                    if (this.state.data) {
                         this.setState({ data: newData });
+                    }
+                    else {
+                        localData = data;
                     }
                 }
             }
     
             this.watches = connection.createWatches(beginWatch, mutator);
+            await Promise.all(this.watches.map(w => w.load()));
+            this.setState({ data: localData });
         }
 
         private stopWatches() {
