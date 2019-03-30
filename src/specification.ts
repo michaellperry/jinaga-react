@@ -7,7 +7,7 @@ interface Type<T> extends Function {
 }
 
 export interface SpecificationMapping<M, VM, Props> {
-    initialState(m: M | null): VM;
+    initialState(m: M): VM;
     createWatches<P>(
         beginWatch: BeginWatch<M,P>,
         mutator: Mutator<P,VM>

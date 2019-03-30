@@ -10,7 +10,7 @@ export type BeginWatch<M, P> = <U, C>(
     resultRemoved: (context: C) => void) => Watch<U, C>;
 
 export type FieldMappingSpecification<M, T> = {
-    initialize(m: M | null): T;
+    initialize(m: M): T;
     createWatches<C>(
         beginWatch: BeginWatch<M, C>,
         mutator: Mutator<C, T>

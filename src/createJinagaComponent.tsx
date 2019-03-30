@@ -12,7 +12,7 @@ export function createJinagaComponent<M, VM, P>(j: Jinaga, connection: Specifica
         
         constructor(props: JinagaComponentProps) {
             super(props);
-            this.state = { data: connection.initialState(this.props.fact) };
+            this.state = { data: this.initialState() };
         }
 
         componentDidMount() {
@@ -26,7 +26,7 @@ export function createJinagaComponent<M, VM, P>(j: Jinaga, connection: Specifica
         componentDidUpdate(prevProps: JinagaComponentProps) {
             if (prevProps.fact !== this.props.fact) {
                 this.stopWatches();
-                this.setState({ data: connection.initialState(this.props.fact) });
+                this.setState({ data: this.initialState() });
                 this.startWatches();
             }
         }
@@ -35,7 +35,13 @@ export function createJinagaComponent<M, VM, P>(j: Jinaga, connection: Specifica
             const ItemComponent = connection.ItemComponent;
             const { fact, ...rest } = this.props;
             const otherProps = rest as P;
-            return <ItemComponent { ...{...this.state.data, ...otherProps} } />;
+            return this.state.data
+                ? <ItemComponent { ...{...this.state.data, ...otherProps} } />
+                : undefined;
+        }
+
+        private initialState(): VM | undefined {
+            return this.props.fact ? connection.initialState(this.props.fact) : undefined;
         }
 
         private startWatches() {

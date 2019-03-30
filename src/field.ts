@@ -9,7 +9,7 @@ import { FieldMappingSpecification } from "./types";
  */
 export function field<M, T>(selector: (m: M) => T): FieldMappingSpecification<M, T> {
     return {
-        initialize: m => m ? selector(m) : undefined,
+        initialize: m => selector(m),
         createWatches: (beginWatch, mutator) => []
     };
 }
