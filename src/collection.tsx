@@ -20,7 +20,7 @@ export function collection<M, U, VM, P>(
     preposition: Preposition<M,U>,
     mapping: SpecificationMapping<U,VM,P>,
     comparer: Comparer<U>
-): FieldMappingSpecification<M, JSX.Element> {
+): FieldMappingSpecification<M, undefined> {
     interface CollectionComponentItem {
         hash: string;
         viewModel: VM;
@@ -49,7 +49,7 @@ export function collection<M, U, VM, P>(
     
     function createWatches<Parent>(
         beginWatch: BeginWatch<M, Parent>,
-        mutator: Mutator<Parent, JSX.Element>
+        mutator: Mutator<Parent, undefined>
     ) {
         type Context = { parent: Parent, hash: string };
 
@@ -59,19 +59,12 @@ export function collection<M, U, VM, P>(
                 hash,
                 viewModel: mapping.initialState(child)
             }
-            mutator(parent, component => <CollectionComponent items={[
-                ...component.props.items,
-                item
-            ]} passThrough={component.props.passThrough} />);
+            mutator(parent, component => undefined);
             return { parent, hash };
         }
 
         function resultRemoved({ parent, hash }: Context) {
-            mutator(parent, component => <CollectionComponent items={
-                component.props.items.filter((item: CollectionComponentItem) =>
-                    item.hash !== hash
-                )
-            } passThrough={component.props.passThrough} />);
+            mutator(parent, component => undefined);
         }
 
         const watch = beginWatch(preposition, resultAdded, resultRemoved);
@@ -85,13 +78,7 @@ export function collection<M, U, VM, P>(
         }
 
         function childMutator({ parent, hash }: Context, transformer: Transformer<VM>) {
-            mutator(parent, component => <CollectionComponent items={
-                component.props.items.map((item: CollectionComponentItem) =>
-                    item.hash === hash
-                        ? { ...item, viewModel: transformer(item.viewModel) }
-                        : item
-                )
-            } passThrough={component.props.passThrough} />)
+            mutator(parent, component => undefined)
         }
 
         mapping.createWatches(beginChildWatch, childMutator);
@@ -100,7 +87,7 @@ export function collection<M, U, VM, P>(
 
     return {
         // TODO: Where do the pass through props come from?
-        initialize: m => <CollectionComponent items={[]} passThrough={ {} as P } />,
+        initialize: m => undefined,
         createWatches
     }
 }
