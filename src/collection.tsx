@@ -20,7 +20,7 @@ export function collection<M, U, VM, P>(
     preposition: Preposition<M,U>,
     mapping: SpecificationMapping<U,VM,P>,
     comparer: Comparer<U>
-): FieldMappingSpecification<M, undefined> {
+): FieldMappingSpecification<M, (passThrough: P) => JSX.Element> {
     const ItemComponent = mapping.ItemComponent;
 
     interface ItemContainerProps {
@@ -126,7 +126,7 @@ export function collection<M, U, VM, P>(
     
     function createWatches<Parent>(
         beginWatch: BeginWatch<M, Parent>,
-        mutator: Mutator<Parent, undefined>,
+        mutator: Mutator<Parent, (passThrough: P) => JSX.Element>,
         getComponent: GetComponent<Parent>
     ) {
         type Context = { parent: Parent, hash: string };
@@ -162,7 +162,19 @@ export function collection<M, U, VM, P>(
             return watch.watch(preposition, resultAdded, resultRemoved);
         }
 
+        function getChildComponent({ parent, hash }: Context): IContainerComponent | null {
+            const collectionContainer = getCollectionContainer(parent);
+            if (collectionContainer) {
+                const itemContainer = collectionContainer.getItemContainer(hash);
+                return itemContainer;
+            }
+            else {
+                return null;
+            }
+        }
+
         function childMutator({ parent, hash }: Context, transformer: Transformer<VM>) {
+            const itemContainer = getChildComponent({ parent, hash });
             const collectionContainer = getCollectionContainer(parent);
             if (collectionContainer) {
                 const itemContainer = collectionContainer.getItemContainer(hash);
@@ -172,18 +184,12 @@ export function collection<M, U, VM, P>(
             }
         }
 
-        function getChildComponent({ parent, hash }: Context): IContainerComponent | null {
-            const parentComponent = getComponent(parent);
-            return null;
-        }
-
         mapping.createWatches(beginChildWatch, childMutator, getChildComponent);
         return [ watch ];
     }
 
     return {
-        // TODO: Where do the pass through props come from?
-        initialize: m => undefined,
+        initialize: m => passThrough => <CollectionContainer passThrough={passThrough} />,
         createWatches
     }
 }
