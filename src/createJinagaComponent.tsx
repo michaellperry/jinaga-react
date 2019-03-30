@@ -1,7 +1,7 @@
 import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { SpecificationMapping } from "./specification";
-import { Transformer } from "./types";
+import { Transformer, IContainerComponent } from "./types";
 
 export function createJinagaComponent<M, VM, P>(
     j: Jinaga,
@@ -79,8 +79,10 @@ export function createJinagaComponent<M, VM, P>(
                     }
                 }
             }
+
+            const getComponent = (parent: undefined) => null;
     
-            this.watches = connection.createWatches(beginWatch, mutator);
+            this.watches = connection.createWatches(beginWatch, mutator, getComponent);
             await Promise.all(this.watches.map(w => w.load()));
             this.setState({ data: localData });
             localData = undefined;

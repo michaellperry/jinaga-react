@@ -4,6 +4,11 @@ export type Transformer<T> = (oldValue: T) => T;
 
 export type Mutator<C, T> = (context: C, transformer: Transformer<T>) => void;
 
+export interface IContainerComponent {
+}
+
+export type GetComponent<C> = (context: C) => IContainerComponent | null;
+
 export type BeginWatch<M, P> = <U, C>(
     preposition: Preposition<M, U>,
     resultAdded: (parent: P, child: U) => C,
@@ -13,7 +18,8 @@ export type FieldMappingSpecification<M, T> = {
     initialize(m: M): T;
     createWatches<C>(
         beginWatch: BeginWatch<M, C>,
-        mutator: Mutator<C, T>
+        mutator: Mutator<C, T>,
+        getComponent: GetComponent<C>
     ): Watch<M, any>[];
 };
 

@@ -1,7 +1,7 @@
 import { Jinaga, Preposition } from "jinaga";
 import * as React from "react";
 import { SpecificationMapping } from "./specification";
-import { BeginWatch, FieldMappingSpecification, Mutator, Transformer } from "./types";
+import { BeginWatch, FieldMappingSpecification, GetComponent, IContainerComponent, Mutator, Transformer } from "./types";
 
 export type Comparer<T> = (a: T, b: T) => number;
 
@@ -21,50 +21,135 @@ export function collection<M, U, VM, P>(
     mapping: SpecificationMapping<U,VM,P>,
     comparer: Comparer<U>
 ): FieldMappingSpecification<M, undefined> {
-    interface CollectionComponentItem {
+    const ItemComponent = mapping.ItemComponent;
+
+    interface ItemContainerProps {
         hash: string;
-        viewModel: VM;
-    };
-    interface CollectionComponentProps {
-        items: CollectionComponentItem[];
+        fact: U;
+        passThrough: P;
+    }
+
+    interface ItemContainerState {
+        data: VM;
+    }
+
+    class ItemContainer extends React.Component<ItemContainerProps, ItemContainerState> {
+        constructor(props: ItemContainerProps) {
+            super(props);
+            this.state = {
+                data: mapping.initialState(this.props.fact)
+            };
+        }
+
+        render() {
+            return <ItemComponent {...{...this.state.data, ...this.props.passThrough}} />;
+        }
+
+        mutate(transformer: Transformer<VM>) {
+            this.setState({
+                data: transformer(this.state.data)
+            });
+        }
+    }
+
+    interface CollectionContainerProps {
         passThrough: P;
     };
 
-    const ItemComponent = mapping.ItemComponent;
+    interface CollectionContainerState {
+        items: {
+            hash: string;
+            fact: U;
+            // orderBy: U;
+        }[];
+    }
 
-    class CollectionComponent extends React.Component<CollectionComponentProps> {
-        constructor(props: CollectionComponentProps) {
+    type ChildRefMap = { [hash: string]: React.RefObject<ItemContainer> };
+
+    class CollectionContainer extends React.Component<CollectionContainerProps, CollectionContainerState> {
+        private childRefs: ChildRefMap = {};
+
+        constructor(props: CollectionContainerProps) {
             super(props);
+            this.state = {
+                items: []
+            };
         }
+
         render() {
+            this.createRefs();
             return (
                 <>
-                    { this.props.items.map(item =>
-                        <ItemComponent key={item.hash} {...{...item.viewModel, ...this.props.passThrough}} />
+                    { this.state.items.map(item =>
+                        <ItemContainer
+                            key={item.hash}
+                            hash={item.hash}
+                            fact={item.fact}
+                            ref={this.childRefs[item.hash]}
+                            passThrough={this.props.passThrough} />
                     )}
                 </>
-            )
+            );
+        }
+
+        addItem(hash: string, fact: U) {
+            this.setState({
+                items: [
+                    ...this.state.items,
+                    {
+                        hash,
+                        fact
+                    }
+                ]
+            });
+        }
+
+        removeItem(hash: string) {
+            this.setState({
+                items: this.state.items.filter(
+                    item => item.hash !== hash)
+            });
+        }
+
+        getItemContainer(hash: string) {
+            return this.childRefs[hash].current;
+        }
+
+        private createRefs() {
+            const newChildRefs = this.state.items.reduce((r,item) => ({
+                ...r,
+                [item.hash]: this.childRefs[item.hash] || React.createRef<ItemContainer>()
+            }), {} as ChildRefMap);
+            this.childRefs = newChildRefs;
         }
     }
     
     function createWatches<Parent>(
         beginWatch: BeginWatch<M, Parent>,
-        mutator: Mutator<Parent, undefined>
+        mutator: Mutator<Parent, undefined>,
+        getComponent: GetComponent<Parent>
     ) {
         type Context = { parent: Parent, hash: string };
 
+        function getCollectionContainer(parent: Parent): CollectionContainer | null {
+            const parentComponent = getComponent(parent);
+            return null;
+        }
+
         function resultAdded(parent: Parent, child: U) {
             const hash = Jinaga.hash(child);
-            const item: CollectionComponentItem = {
-                hash,
-                viewModel: mapping.initialState(child)
+            const collectionContainer = getCollectionContainer(parent);
+            if (collectionContainer) {
+                collectionContainer.addItem(hash, child);
             }
-            mutator(parent, component => undefined);
             return { parent, hash };
         }
 
         function resultRemoved({ parent, hash }: Context) {
-            mutator(parent, component => undefined);
+            const collectionContainer = getCollectionContainer(parent);
+            if (collectionContainer) {
+                collectionContainer.removeItem(hash);
+            }
         }
 
         const watch = beginWatch(preposition, resultAdded, resultRemoved);
@@ -78,10 +163,21 @@ export function collection<M, U, VM, P>(
         }
 
         function childMutator({ parent, hash }: Context, transformer: Transformer<VM>) {
-            mutator(parent, component => undefined)
+            const collectionContainer = getCollectionContainer(parent);
+            if (collectionContainer) {
+                const itemContainer = collectionContainer.getItemContainer(hash);
+                if (itemContainer) {
+                    itemContainer.mutate(transformer);
+                }
+            }
         }
 
-        mapping.createWatches(beginChildWatch, childMutator);
+        function getChildComponent({ parent, hash }: Context): IContainerComponent | null {
+            const parentComponent = getComponent(parent);
+            return null;
+        }
+
+        mapping.createWatches(beginChildWatch, childMutator, getChildComponent);
         return [ watch ];
     }
 

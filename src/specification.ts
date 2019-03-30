@@ -1,6 +1,6 @@
 import { Watch } from "jinaga";
 import * as React from "react";
-import { BeginWatch, Mutator, ViewModel, ViewModelMappingSpecification } from "./types";
+import { BeginWatch, Mutator, ViewModel, ViewModelMappingSpecification, GetComponent } from "./types";
 
 interface Type<T> extends Function {
     new (...args: any[]): T;
@@ -10,7 +10,8 @@ export interface SpecificationMapping<M, VM, Props> {
     initialState(m: M): VM;
     createWatches<P>(
         beginWatch: BeginWatch<M,P>,
-        mutator: Mutator<P,VM>
+        mutator: Mutator<P,VM>,
+        getComponent: GetComponent<P>
     ): Watch<M, any>[];
     ItemComponent: React.ComponentType<VM & Props>
 }
@@ -26,14 +27,15 @@ export function specificationFor<M, Spec extends ViewModelMappingSpecification<M
                 ...vm,
                 [key]: specs[key].initialize(m)
             }), {} as VM),
-            createWatches: (beginWatch, mutator) => {
+            createWatches: (beginWatch, mutator, getComponent) => {
                 const watches = Object.keys(specs)
                     .map(key => specs[key].createWatches(
                         beginWatch,
                         (path, transformer) => mutator(path, vm => ({
                             ...vm,
                             [key]: transformer(vm[key])
-                        }))
+                        })),
+                        getComponent
                     ))
                     .reduce((a,b) => a.concat(b));
                 return watches;
