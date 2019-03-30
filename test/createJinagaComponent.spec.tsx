@@ -4,7 +4,7 @@ import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 import * as React from "react";
 import { applicationMapping } from "./view";
-import { render, act, cleanup, configure } from "react-testing-library";
+import { render, act, cleanup, configure, Matcher, MatcherOptions } from "react-testing-library";
 
 describe("Application State", () => {
     var j: Jinaga;
@@ -26,17 +26,70 @@ describe("Application State", () => {
     });
 
     it("should resolve fields", async () => {
-        const { findByTestId } = render(<Application fact={root} />);
-        const identifier = await findByTestId("identifier") as HTMLElement;
-        expect(identifier.innerHTML).toBe("home");
+        const identifier = await whenGetIdentifier();
+        expect(identifier).toBe("home");
     })
 
     it("should resolve properties", async () => {
         await j.fact(new Name(new Root("home"), "Home", []));
-        const { findByTestId } = render(<Application fact={root} />);
-        const name = await findByTestId("name") as HTMLElement;
-        expect(name.innerHTML).toBe("Home");
+
+        const name = await whenGetName();
+        expect(name).toBe("Home");
     });
+
+    it("should replace previous values", async () => {
+        const root = await j.fact(new Root("home"));
+        const first = await j.fact(new Name(root, "Home", []));
+        await j.fact(new Name(root, "Modified", [ first ]));
+
+        const name = await whenGetName();
+        expect(name).toBe("Modified");
+    });
+
+    it("should take second value in a conflict", async () => {
+        const root = await j.fact(new Root("home"));
+        await j.fact(new Name(root, "Home", []));
+        await j.fact(new Name(root, "Modified", []));
+
+        const name = await whenGetName();
+        expect(name).toBe("Modified");
+    });
+
+    async function whenGetIdentifier() {
+        return await whenGetTestValue("identifier");
+    }
+
+    async function whenGetName() {
+        return await whenGetTestValue("name");
+    }
+
+    async function whenGetTestValue(testId: string) {
+        const { findByTestId } = render(<Application fact={root} />);
+        const identifier = await findByTestId(testId) as HTMLElement;
+        return identifier.innerHTML;
+    }
+    
+    // it("should resolve mutable", async () => {
+    //     await j.fact(new Name(new Root("home"), "Home", []));
+    //     expect(application.state.nameWithConflicts.value).to.equal("Home");
+    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
+    // });
+
+    // it("should replace previous value in mutable", async () => {
+    //     const root = await j.fact(new Root("home"));
+    //     const first = await j.fact(new Name(root, "Home", []));
+    //     await j.fact(new Name(root, "Modified", [ first ]));
+    //     expect(application.state.nameWithConflicts.value).to.equal("Modified");
+    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
+    // });
+
+    // it("should apply resolver in a conflict", async () => {
+    //     const root = await j.fact(new Root("home"));
+    //     await j.fact(new Name(root, "Home", []));
+    //     await j.fact(new Name(root, "Modified", []));
+    //     expect(application.state.nameWithConflicts.value).to.equal("Home, Modified");
+    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(2);
+    // });
 
     // it("should add to a collection", async () => {
     //     await j.fact(new Item(new Root("home"), new Date()));
@@ -76,42 +129,6 @@ describe("Application State", () => {
     //     const subItem = await j.fact(new SubItem(item, new Date()));
     //     await j.fact(new SubSubItem(subItem, "reindeer flotilla"));
     //     expect(application.state.items[0].subItems[0].subSubItems[0].id).to.equal("reindeer flotilla");
-    // });
-
-    // it("should replace previous values", async () => {
-    //     const root = await j.fact(new Root("home"));
-    //     const first = await j.fact(new Name(root, "Home", []));
-    //     await j.fact(new Name(root, "Modified", [ first ]));
-    //     expect(application.state.name).to.equal("Modified");
-    // });
-
-    // it("should take second value in a conflict", async () => {
-    //     const root = await j.fact(new Root("home"));
-    //     await j.fact(new Name(root, "Home", []));
-    //     await j.fact(new Name(root, "Modified", []));
-    //     expect(application.state.name).to.equal("Modified");
-    // });
-
-    // it("should resolve mutable", async () => {
-    //     await j.fact(new Name(new Root("home"), "Home", []));
-    //     expect(application.state.nameWithConflicts.value).to.equal("Home");
-    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
-    // });
-
-    // it("should replace previous value in mutable", async () => {
-    //     const root = await j.fact(new Root("home"));
-    //     const first = await j.fact(new Name(root, "Home", []));
-    //     await j.fact(new Name(root, "Modified", [ first ]));
-    //     expect(application.state.nameWithConflicts.value).to.equal("Modified");
-    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
-    // });
-
-    // it("should apply resolver in a conflict", async () => {
-    //     const root = await j.fact(new Root("home"));
-    //     await j.fact(new Name(root, "Home", []));
-    //     await j.fact(new Name(root, "Modified", []));
-    //     expect(application.state.nameWithConflicts.value).to.equal("Home, Modified");
-    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(2);
     // });
 
     // it("should initialize projection", () => {
