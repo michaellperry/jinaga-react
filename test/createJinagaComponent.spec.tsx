@@ -13,30 +13,29 @@ describe("Application State", () => {
 
     beforeEach(async () => {
         j = JinagaBrowser.create({});
-        root = await j.fact(new Root("id"));
+        root = await j.fact(new Root("home"));
         Application = createJinagaComponent(j, applicationMapping);
     });
 
     afterEach(cleanup);
 
-    it("should initialize the component", () => {
-        const { getByTestId } = render(<Application fact={root} />);
-        expect(getByTestId("identifier")).not.toBe(null);
+    it("should initialize the component", async () => {
+        const { findByTestId } = render(<Application fact={root} />);
+        const identifier = await findByTestId("identifier") as HTMLElement;
+        expect(identifier).not.toBe(null);
     });
 
-    it("should resolve fields", () => {
-        const { getByTestId } = render(<Application fact={root} />);
-        expect(getByTestId("identifier").innerHTML).toBe("id");
+    it("should resolve fields", async () => {
+        const { findByTestId } = render(<Application fact={root} />);
+        const identifier = await findByTestId("identifier") as HTMLElement;
+        expect(identifier.innerHTML).toBe("home");
     })
 
-    it.only("should resolve properties", async () => {
-        await j.fact(new Name(new Root("id"), "Home", []));
-        const names = await j.query(root, j.for(Name.inRoot));
-        expect(names[0].value).toBe("Home");
-
+    it("should resolve properties", async () => {
+        await j.fact(new Name(new Root("home"), "Home", []));
         const { findByTestId } = render(<Application fact={root} />);
         const name = await findByTestId("name") as HTMLElement;
-        expect(name.innerText).toBe("Home");
+        expect(name.innerHTML).toBe("Home");
     });
 
     // it("should add to a collection", async () => {

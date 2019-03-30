@@ -2,7 +2,6 @@ import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { SpecificationMapping } from "./specification";
 import { Transformer } from "./types";
-import { Query } from "jinaga/dist/types/query/query";
 
 export function createJinagaComponent<M, VM, P>(
     j: Jinaga,
@@ -50,17 +49,13 @@ export function createJinagaComponent<M, VM, P>(
         }
 
         private async startWatches() {
-            console.log("Start watches");
             const model = this.props.fact;
             if (!model) {
-                console.log("  no model; bail");
                 return;
             }
-            console.log("  model; yay!");
 
             this.setState({ data: undefined });
-            var localData = this.initialState() as VM;
-            console.log("  initial state: " + JSON.stringify(localData, null, 4));
+            let localData = this.initialState();
 
             function beginWatch<C, V>(
                 preposition: Preposition<M, C>,
@@ -71,29 +66,24 @@ export function createJinagaComponent<M, VM, P>(
             }
 
             const mutator = (parent: undefined, transformer: Transformer<VM>) => {
-                console.log("  mutating data");
                 const data = this.state.data || localData;
-                console.log("  old data: ", JSON.stringify(data, null, 4));
-                const newData = transformer(data);
-                if (newData !== data) {
-                    console.log("  new data: ", JSON.stringify(newData, null, 4));
-                    if (this.state.data) {
-                        this.setState({ data: newData });
-                    }
-                    else {
-                        localData = newData;
+                if (data) {
+                    const newData = transformer(data);
+                    if (newData !== data) {
+                        if (this.state.data) {
+                            this.setState({ data: newData });
+                        }
+                        else {
+                            localData = newData;
+                        }
                     }
                 }
             }
     
             this.watches = connection.createWatches(beginWatch, mutator);
-            console.log("  created watches:" + this.watches
-                .map((watch: any) => "\n    " + watch.query.toDescriptiveString())
-                .join("")
-            );
             await Promise.all(this.watches.map(w => w.load()));
-            console.log("  loaded watches; new state = " + JSON.stringify(localData, null, 4));
             this.setState({ data: localData });
+            localData = undefined;
         }
 
         private stopWatches() {
