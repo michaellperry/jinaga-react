@@ -30,7 +30,10 @@ describe("Application State", () => {
     })
 
     it.only("should resolve properties", async () => {
-        await j.fact(new Name(new Root("home"), "Home", []));
+        await j.fact(new Name(new Root("id"), "Home", []));
+        const names = await j.query(root, j.for(Name.inRoot));
+        expect(names[0].value).toBe("Home");
+
         const { findByTestId } = render(<Application fact={root} />);
         const name = await findByTestId("name") as HTMLElement;
         expect(name.innerText).toBe("Home");
