@@ -80,6 +80,22 @@ describe("Application State", () => {
         expect(nameWithConflicts).toBe("Home, Modified");
     });
 
+    it("should add to a collection", async () => {
+        const item = await j.fact(new Item(new Root("home"), new Date()));
+
+        const itemHash = await whenGetTestValue("item_hash");
+        expect(itemHash).toBe(j.hash(item));
+    });
+
+    it("should remove from a collection", async () => {
+        const item = await j.fact(new Item(new Root("home"), new Date()));
+        await j.fact(new ItemDeleted(item));
+
+        const { queryByTestId } = render(<Application fact={root} />);
+        const element = await queryByTestId("item_hash");
+        expect(element).toBe(null);
+    });
+
     async function whenGetIdentifier() {
         return await whenGetTestValue("identifier");
     }
@@ -97,21 +113,6 @@ describe("Application State", () => {
         const identifier = await findByTestId(testId) as HTMLElement;
         return identifier.innerHTML;
     }
-
-    // it("should add to a collection", async () => {
-    //     await j.fact(new Item(new Root("home"), new Date()));
-    //     expect(application.state.items.length).to.equal(1);
-    // });
-
-    // it("should resolve the fact", async () => {
-    //     await j.fact(new Item(new Root("home"), new Date()));
-    //     expect(application.state.items[0].fact.type).to.equal(Item.Type);
-    // });
-
-    // it("should resolve the key", async () => {
-    //     const item = await j.fact(new Item(new Root("home"), new Date()));
-    //     expect(application.state.items[0].key).to.equal(j.hash(item));
-    // });
 
     // it("should remove from a collection", async () => {
     //     const item = await j.fact(new Item(new Root("home"), new Date()));
