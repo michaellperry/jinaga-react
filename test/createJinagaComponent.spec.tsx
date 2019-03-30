@@ -4,21 +4,23 @@ import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 import * as React from "react";
 import { applicationMapping } from "./view";
+import { create } from "react-test-renderer";
 
 describe('Application State', () => {
     var j: Jinaga;
-    var application: JSX.Element;
+    var root: Root;
+    var Application: React.ComponentType<{ fact: Root | undefined }>;
 
     beforeEach(async () => {
         j = JinagaBrowser.create({});
-        const root = await j.fact(new Root("id"));
-        const Application = createJinagaComponent(j, applicationMapping)
-        application = <Application fact={root} />;
+        root = await j.fact(new Root("id"));
+        Application = createJinagaComponent(j, applicationMapping)
     });
 
-    // it('should initialize view model', () => {
-    //     expect(application.state).to.not.be.null;
-    // });
+    it('should initialize the component', () => {
+        const component = create(<Application fact={root} />);
+        expect(component.root).not.toBe(null);
+    });
 
     // it('should add to a collection', async () => {
     //     await j.fact(new Item(new Root('home'), new Date()));
