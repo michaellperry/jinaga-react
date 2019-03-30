@@ -5,6 +5,7 @@ import { ApplicationState } from "./viewModel";
 import * as React from "react";
 
 const applicationSpec = specificationFor(Root, {
+    identifier: field(r =>r.identifier),
     name: property(j.for(Name.inRoot), n => n.value, ""),
     nameWithConflicts: mutable(j.for(Name.inRoot), names => names
         .map(n => n.value)
@@ -12,8 +13,9 @@ const applicationSpec = specificationFor(Root, {
     )
 });
 
-export const applicationMapping = applicationSpec(({ name, nameWithConflicts }) =>
+export const applicationMapping = applicationSpec(({ identifier, name, nameWithConflicts }) =>
     <>
+        <p id="identifier">{identifier}</p>
         <p id="name">{name}</p>
     </>
 );
