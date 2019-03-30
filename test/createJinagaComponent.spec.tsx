@@ -4,7 +4,7 @@ import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 import { ApplicationState } from "./viewModel";
 import * as React from "react";
 import { applicationMapping } from "./view";
-import { create } from "react-test-renderer";
+import { render, act, cleanup, configure } from "react-testing-library";
 
 describe("Application State", () => {
     var j: Jinaga;
@@ -14,20 +14,19 @@ describe("Application State", () => {
     beforeEach(async () => {
         j = JinagaBrowser.create({});
         root = await j.fact(new Root("id"));
-        Application = createJinagaComponent(j, applicationMapping)
+        Application = createJinagaComponent(j, applicationMapping);
     });
 
+    afterEach(cleanup);
+
     it("should initialize the component", () => {
-        const component = create(<Application fact={root} />);
-        expect(component.root).not.toBe(null);
+        const { getByTestId } = render(<Application fact={root} />);
+        expect(getByTestId("identifier")).not.toBe(null);
     });
 
     it("should resolve fields", () => {
-        const component = create(<Application fact={root} />);
-        expect(component.root
-            .find(p => p.type === "p" && p.props.id === "identifier")
-            .props.children
-        ).toBe("id");
+        const { getByTestId } = render(<Application fact={root} />);
+        expect(getByTestId("identifier").innerHTML).toBe("id");
     })
 
     // it("should resolve properties", async () => {

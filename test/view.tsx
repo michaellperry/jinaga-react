@@ -15,8 +15,8 @@ const applicationSpec = specificationFor(Root, {
 
 export const applicationMapping = applicationSpec(({ identifier, name, nameWithConflicts }) =>
     <>
-        <p id="identifier">{identifier}</p>
-        <p id="name">{name}</p>
+        <p data-testid="identifier">{identifier}</p>
+        <p data-testid="name">{name}</p>
     </>
 );
 
