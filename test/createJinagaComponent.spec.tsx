@@ -54,6 +54,31 @@ describe("Application State", () => {
         const name = await whenGetName();
         expect(name).toBe("Modified");
     });
+    
+    it("should resolve mutable", async () => {
+        await j.fact(new Name(new Root("home"), "Home", []));
+
+        const nameWithConflicts = await whenGetNameWithConflicts();
+        expect(nameWithConflicts).toBe("Home");
+    });
+
+    it("should replace previous value in mutable", async () => {
+        const root = await j.fact(new Root("home"));
+        const first = await j.fact(new Name(root, "Home", []));
+        await j.fact(new Name(root, "Modified", [ first ]));
+
+        const nameWithConflicts = await whenGetNameWithConflicts();
+        expect(nameWithConflicts).toBe("Modified");
+    });
+
+    it("should apply resolver in a conflict", async () => {
+        const root = await j.fact(new Root("home"));
+        await j.fact(new Name(root, "Home", []));
+        await j.fact(new Name(root, "Modified", []));
+
+        const nameWithConflicts = await whenGetNameWithConflicts();
+        expect(nameWithConflicts).toBe("Home, Modified");
+    });
 
     async function whenGetIdentifier() {
         return await whenGetTestValue("identifier");
@@ -63,33 +88,15 @@ describe("Application State", () => {
         return await whenGetTestValue("name");
     }
 
+    async function whenGetNameWithConflicts() {
+        return await whenGetTestValue("nameWithConflicts");
+    }
+
     async function whenGetTestValue(testId: string) {
         const { findByTestId } = render(<Application fact={root} />);
         const identifier = await findByTestId(testId) as HTMLElement;
         return identifier.innerHTML;
     }
-    
-    // it("should resolve mutable", async () => {
-    //     await j.fact(new Name(new Root("home"), "Home", []));
-    //     expect(application.state.nameWithConflicts.value).to.equal("Home");
-    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
-    // });
-
-    // it("should replace previous value in mutable", async () => {
-    //     const root = await j.fact(new Root("home"));
-    //     const first = await j.fact(new Name(root, "Home", []));
-    //     await j.fact(new Name(root, "Modified", [ first ]));
-    //     expect(application.state.nameWithConflicts.value).to.equal("Modified");
-    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(1);
-    // });
-
-    // it("should apply resolver in a conflict", async () => {
-    //     const root = await j.fact(new Root("home"));
-    //     await j.fact(new Name(root, "Home", []));
-    //     await j.fact(new Name(root, "Modified", []));
-    //     expect(application.state.nameWithConflicts.value).to.equal("Home, Modified");
-    //     expect(Object.keys(application.state.nameWithConflicts.candidates).length).to.equal(2);
-    // });
 
     // it("should add to a collection", async () => {
     //     await j.fact(new Item(new Root("home"), new Date()));

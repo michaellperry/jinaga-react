@@ -17,6 +17,7 @@ export const applicationMapping = applicationSpec(({ identifier, name, nameWithC
     <>
         <p data-testid="identifier">{identifier}</p>
         <p data-testid="name">{name}</p>
+        <p data-testid="nameWithConflicts">{nameWithConflicts.value}</p>
     </>
 );
 
