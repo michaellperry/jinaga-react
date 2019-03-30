@@ -3,9 +3,12 @@ import * as React from "react";
 import { SpecificationMapping } from "./specification";
 import { Transformer } from "./types";
 
-export function createJinagaComponent<M, VM, P>(j: Jinaga, connection: SpecificationMapping<M, VM, P>) {
-    type JinagaComponentProps = { fact: M } & P;
-    type JinagaComponentState = { data: VM }
+export function createJinagaComponent<M, VM, P>(
+    j: Jinaga,
+    connection: SpecificationMapping<M, VM, P>
+): React.ComponentType<{ fact: M | undefined } & P> {
+    type JinagaComponentProps = { fact: M | undefined } & P;
+    type JinagaComponentState = { data: VM | undefined }
 
     return class extends React.Component<JinagaComponentProps, JinagaComponentState> {
         private watches: Watch<M, any>[] = [];
@@ -41,7 +44,8 @@ export function createJinagaComponent<M, VM, P>(j: Jinaga, connection: Specifica
         }
 
         private initialState(): VM | undefined {
-            return this.props.fact ? connection.initialState(this.props.fact) : undefined;
+            const fact = this.props.fact as M | undefined;
+            return fact ? connection.initialState(fact) : undefined;
         }
 
         private startWatches() {
@@ -59,9 +63,11 @@ export function createJinagaComponent<M, VM, P>(j: Jinaga, connection: Specifica
             }
 
             const mutator = (parent: undefined, transformer: Transformer<VM>) => {
-                const newData = transformer(this.state.data);
-                if (newData !== this.state.data) {
-                    this.setState({ data: newData });
+                if (this.state.data) {
+                    const newData = transformer(this.state.data);
+                    if (newData !== this.state.data) {
+                        this.setState({ data: newData });
+                    }
                 }
             }
     
