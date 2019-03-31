@@ -20,6 +20,7 @@ export class RefSlot {
             };
         }
         else {
+            console.log("Allocated ref for key " + this.key);
             const ref = React.createRef<IContainerComponent>();
             const map = { ...this.map, [this.key]: ref };
             return { ref, map };

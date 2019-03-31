@@ -88,6 +88,7 @@ export function collection<M, U, VM, P>(
             this.state = {
                 items: []
             };
+            console.log("Created collection container.");
         }
 
         render() {
