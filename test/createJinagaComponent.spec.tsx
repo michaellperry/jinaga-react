@@ -2,8 +2,8 @@ import { Jinaga, JinagaBrowser } from "jinaga";
 import * as React from "react";
 import { cleanup, render } from "react-testing-library";
 import { jinagaContainer } from "../src/specifications/jinagaContainer";
-import { Root, Name } from "./model";
 import { applicationMapping } from "./components/Application";
+import { Item, Name, Root } from "./model";
 
 describe("Specification For", () => {
     var j: Jinaga;
@@ -77,6 +77,13 @@ describe("Specification For", () => {
 
         const nameWithConflicts = await whenGetNameWithConflicts();
         expect(nameWithConflicts).toBe("Home, Modified");
+    });
+
+    it("should add to a collection", async () => {
+        const item = await j.fact(new Item(new Root("home"), new Date()));
+
+        const itemHash = await whenGetTestValue("item_hash");
+        expect(itemHash).toBe(j.hash(item));
     });
 
     async function whenGetIdentifier() {

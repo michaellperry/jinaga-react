@@ -1,10 +1,12 @@
 import { Jinaga as j } from "jinaga";
 import * as React from "react";
+import { ascending, collection } from "../../src/specifications/collection";
 import { field } from "../../src/specifications/field";
+import { mutable } from "../../src/specifications/mutable";
 import { property } from "../../src/specifications/property";
 import { specificationFor } from "../../src/specifications/specificationFor";
-import { Name, Root } from "../model";
-import { mutable } from "../../src/specifications/mutable";
+import { Item, Name, Root } from "../model";
+import { lineItemMapping } from "./LineItem";
 
 const applicationSpec = specificationFor(Root, {
     identifier: field(r => r.identifier),
@@ -12,18 +14,21 @@ const applicationSpec = specificationFor(Root, {
     nameWithConflicts: mutable(j.for(Name.inRoot), names => names
         .map(n => n.value)
         .join(", ")
-    )
+    ),
+    Items: collection(j.for(Item.inRoot), lineItemMapping, ascending(i => i.createdAt))
 });
 
 interface ApplicationExtraProps {
     greeting: string;
 }
 
-export const applicationMapping = applicationSpec<ApplicationExtraProps>(({ identifier, name, nameWithConflicts, greeting }) => (
+export const applicationMapping = applicationSpec<ApplicationExtraProps>(
+    ({ identifier, name, nameWithConflicts, Items, greeting }) => (
     <>
         <p data-testid="greeting">{greeting}</p>
         <p data-testid="identifier">{identifier}</p>
         <p data-testid="name">{name}</p>
         <p data-testid="nameWithConflicts">{nameWithConflicts.value}</p>
+        <Items />
     </>
 ))
