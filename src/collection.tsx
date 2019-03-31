@@ -21,7 +21,7 @@ export function collection<M, U, VM, P>(
     preposition: Preposition<M,U>,
     mapping: SpecificationMapping<U,VM,P>,
     comparer: Comparer<U>
-): FieldMappingSpecification<M, (passThrough: P) => JSX.Element> {
+): FieldMappingSpecification<M, (props: P) => JSX.Element> {
     const ItemComponent = mapping.ItemComponent;
 
     interface ItemContainerProps {
@@ -210,9 +210,9 @@ export function collection<M, U, VM, P>(
         initialState: (m, slot) => {
             const { ref, map } = slot.getRef();
             return {
-                result: passThrough => <CollectionContainer
+                result: props => <CollectionContainer
                     ref={ref as React.Ref<CollectionContainer>}
-                    passThrough={passThrough} />,
+                    passThrough={props} />,
                 refs: map
             };
         },
