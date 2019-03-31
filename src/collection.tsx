@@ -150,7 +150,9 @@ export function collection<M, U, VM, P>(
         type Context = { parent: Parent, hash: string };
 
         function getCollectionContainer(parent: Parent): CollectionContainer | null {
+            console.log("Getting collection container for: ", JSON.stringify(parent, null, 4));
             const parentComponent = getComponent(parent);
+            console.log("  found: ", JSON.stringify(parentComponent, null, 4));
             return null;
         }
 
@@ -181,12 +183,15 @@ export function collection<M, U, VM, P>(
         }
 
         function getChildComponent({ parent, hash }: Context): IContainerComponent | null {
+            console.log("Get child component: ", JSON.stringify({ parent, hash }, null, 4));
             const collectionContainer = getCollectionContainer(parent);
             if (collectionContainer) {
+                console.log("  found it!");
                 const itemContainer = collectionContainer.getItemContainer(hash);
                 return itemContainer;
             }
             else {
+                console.log("  nope!");
                 return null;
             }
         }

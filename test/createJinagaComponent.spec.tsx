@@ -80,7 +80,7 @@ describe("Application State", () => {
         expect(nameWithConflicts).toBe("Home, Modified");
     });
 
-    it("should add to a collection", async () => {
+    it.only("should add to a collection", async () => {
         const item = await j.fact(new Item(new Root("home"), new Date()));
 
         const itemHash = await whenGetTestValue("item_hash");

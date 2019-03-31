@@ -56,8 +56,10 @@ export function specificationFor<M, Spec extends ViewModelMappingSpecification<M
             key: K
         ): GetComponent<Context<P,K>> {
             return (context) => {
+                console.log("Getting field component: ", context.parent);
                 const parentComponent = getComponent(context.parent);
                 if (parentComponent) {
+                    console.log("  found parent: getting key " + key);
                     return parentComponent.getContainerComponent(key);
                 }
                 else {
@@ -67,13 +69,21 @@ export function specificationFor<M, Spec extends ViewModelMappingSpecification<M
         }
 
         return {
-            initialState: (m, refs) => ({
-                result: Object.keys(specs).reduce((vm,key) => ({
-                    ...vm,
-                    [key]: specs[key].initialState(m, new RefSlot(key, refs)).result
-                }), {} as VM),
-                refs
-            }),
+            initialState: (m, inRefs) => {
+                const { vm, r } = (
+                    Object.keys(specs).reduce(({ vm, r },key) => {
+                        const { result, refs } = specs[key].initialState(m, new RefSlot(key, r));
+                        return {
+                            vm: ({
+                                ...vm,
+                                [key]: result
+                            }),
+                            r: refs
+                        };
+                    }, { vm: {} as VM, r: inRefs })
+                );
+                return { result: vm, refs: r };
+            },
             createWatches: (beginWatch, mutator, getComponent) => {
                 const watches = Object.keys(specs)
                     .map(key => specs[key].createWatches(

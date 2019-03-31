@@ -2,7 +2,7 @@ import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { SpecificationMapping } from "./specification";
 import { Transformer } from "./types";
-import { ContainerRefMap } from "./refsAllocator";
+import { ContainerRefMap, IContainerComponent } from "./refsAllocator";
 
 export function createJinagaComponent<M, VM, P>(
     j: Jinaga,
@@ -11,7 +11,7 @@ export function createJinagaComponent<M, VM, P>(
     type JinagaComponentProps = { fact: M | undefined } & P;
     type JinagaComponentState = { data: VM | undefined }
 
-    return class extends React.Component<JinagaComponentProps, JinagaComponentState> {
+    return class extends React.Component<JinagaComponentProps, JinagaComponentState> implements IContainerComponent {
         private watches: Watch<M, any>[] = [];
         private containerRefs: ContainerRefMap = {};
         
@@ -46,6 +46,7 @@ export function createJinagaComponent<M, VM, P>(
         }
 
         getContainerComponent(key: string) {
+            console.log("Getting root container component for key " + key, Object.keys(this.containerRefs));
             if (this.containerRefs.hasOwnProperty(key)) {
                 return this.containerRefs[key].current;
             }
@@ -58,6 +59,7 @@ export function createJinagaComponent<M, VM, P>(
             const fact = this.props.fact as M | undefined;
             if (fact) {
                 const { result, refs } = connection.initialState(fact, this.containerRefs);
+                console.log("Initialized root component; has container refs: ", JSON.stringify(Object.keys(this.containerRefs)))
                 this.containerRefs = refs;
                 return result;
             }
@@ -98,7 +100,10 @@ export function createJinagaComponent<M, VM, P>(
                 }
             }
 
-            const getComponent = (parent: undefined) => this;
+            const getComponent = (parent: undefined) => {
+                console.log("Getting root component; has container refs: ", JSON.stringify(Object.keys(this.containerRefs)));
+                return this;
+            };
     
             this.watches = connection.createWatches(beginWatch, mutator, getComponent);
             await Promise.all(this.watches.map(w => w.load()));
