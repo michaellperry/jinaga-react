@@ -1,6 +1,7 @@
 import * as React from "react";
 
 export interface IContainerComponent {
+    getContainerComponent(key: string): IContainerComponent | null;
 }
 
 export type ContainerRefMap = { [key: string]: React.RefObject<IContainerComponent> };
@@ -19,7 +20,7 @@ export class RefSlot {
             };
         }
         else {
-            const ref = React.createRef();
+            const ref = React.createRef<IContainerComponent>();
             const map = { ...this.map, [this.key]: ref };
             return { ref, map };
         }

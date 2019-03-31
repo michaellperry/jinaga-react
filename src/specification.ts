@@ -51,15 +51,14 @@ export function specificationFor<M, Spec extends ViewModelMappingSpecification<M
             }));
         }
 
-        function fieldGetComponent<P, K extends keyof VM>(
+        function fieldGetComponent<P, K extends keyof VM & string>(
             getComponent: GetComponent<P>,
             key: K
         ): GetComponent<Context<P,K>> {
             return (context) => {
                 const parentComponent = getComponent(context.parent);
                 if (parentComponent) {
-                    // TODO: Get child by key
-                    return parentComponent;
+                    return parentComponent.getContainerComponent(key);
                 }
                 else {
                     return null;
@@ -71,7 +70,7 @@ export function specificationFor<M, Spec extends ViewModelMappingSpecification<M
             initialState: (m, refs) => ({
                 result: Object.keys(specs).reduce((vm,key) => ({
                     ...vm,
-                    [key]: specs[key].initialState(m, new RefSlot(key, refs))
+                    [key]: specs[key].initialState(m, new RefSlot(key, refs)).result
                 }), {} as VM),
                 refs
             }),

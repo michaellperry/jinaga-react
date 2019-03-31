@@ -45,6 +45,15 @@ export function createJinagaComponent<M, VM, P>(
                 : <></>;
         }
 
+        getContainerComponent(key: string) {
+            if (this.containerRefs.hasOwnProperty(key)) {
+                return this.containerRefs[key].current;
+            }
+            else {
+                return null;
+            }
+        }
+
         private initialState(): VM | undefined {
             const fact = this.props.fact as M | undefined;
             if (fact) {
@@ -89,7 +98,7 @@ export function createJinagaComponent<M, VM, P>(
                 }
             }
 
-            const getComponent = (parent: undefined) => null;
+            const getComponent = (parent: undefined) => this;
     
             this.watches = connection.createWatches(beginWatch, mutator, getComponent);
             await Promise.all(this.watches.map(w => w.load()));

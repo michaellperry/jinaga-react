@@ -21,15 +21,15 @@ const applicationSpec = specificationFor(Root, {
         .map(n => n.value)
         .join(", ")
     ),
-    items: collection(j.for(Item.inRoot), itemMapping, ascending(i => i.createdAt))
+    Items: collection(j.for(Item.inRoot), itemMapping, ascending(i => i.createdAt))
 });
 
-export const applicationMapping = applicationSpec(({ identifier, name, nameWithConflicts, items }) =>
+export const applicationMapping = applicationSpec(({ identifier, name, nameWithConflicts, Items }) =>
     <>
         <p data-testid="identifier">{identifier}</p>
         <p data-testid="name">{name}</p>
         <p data-testid="nameWithConflicts">{nameWithConflicts.value}</p>
-        { items }
+        <Items />
     </>
 );
 

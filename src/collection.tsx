@@ -55,6 +55,15 @@ export function collection<M, U, VM, P>(
                 data: transformer(this.state.data)
             });
         }
+
+        getContainerComponent(key: string) {
+            if (this.containerRefs.hasOwnProperty(key)) {
+                return this.containerRefs[key].current;
+            }
+            else {
+                return null;
+            }
+        }
     }
 
     interface CollectionContainerProps {
@@ -118,6 +127,10 @@ export function collection<M, U, VM, P>(
 
         getItemContainer(hash: string) {
             return this.childRefs[hash].current;
+        }
+
+        getContainerComponent(key: string) {
+            return null;
         }
 
         private createRefs() {
