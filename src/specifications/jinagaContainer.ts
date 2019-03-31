@@ -1,10 +1,10 @@
 import { Jinaga } from "jinaga";
 import * as React from "react";
-import { SpecificationMapping } from "./specificationFor";
+import { Mapping } from "./specificationFor";
 
-export function createJinagaComponent<M, VM, P>(
+export function jinagaContainer<M, VM, P>(
     j: Jinaga,
-    connection: SpecificationMapping<M, VM, P>
+    connection: Mapping<M, VM, P>
 ): React.ComponentType<{ fact: M | undefined } & P> {
     throw new Error("Not yet implemented");
 }

@@ -1,7 +1,7 @@
 import { Jinaga, JinagaBrowser } from "jinaga";
 import * as React from "react";
 import { cleanup, render } from "react-testing-library";
-import { createJinagaComponent } from "../src/specifications/createJinagaComponent";
+import { jinagaContainer } from "../src/specifications/jinagaContainer";
 import { Root } from "./model";
 import { applicationMapping } from "./components/Application";
 
@@ -13,7 +13,7 @@ describe("Specification For", () => {
     beforeEach(async () => {
         j = JinagaBrowser.create({});
         root = await j.fact(new Root("home"));
-        Application = createJinagaComponent(j, applicationMapping);
+        Application = jinagaContainer(j, applicationMapping);
     });
 
     afterEach(cleanup);
