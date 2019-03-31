@@ -7,6 +7,6 @@ export type Mapping<M, VM, P> = {
     createWatches(
         beginWatch: BeginWatch<M>,
         mutator: Mutator<VM>
-    ): Watch<M, WatchContext>[];
+    ): Watch<M, WatchContext<VM>>[];
     PresentationComponent: React.ComponentType<VM & P>
 }

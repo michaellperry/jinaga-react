@@ -16,7 +16,7 @@ export function jinagaContainer<M, VM, P>(
     }
     
     return class RootContainer extends React.Component<RootContainerProps, RootContainerState> {
-        private watches: Watch<M, WatchContext>[] = [];
+        private watches: Watch<M, WatchContext<VM>>[] = [];
         
         constructor(props: RootContainerProps) {
             super(props);
@@ -70,7 +70,7 @@ export function jinagaContainer<M, VM, P>(
 
             function beginWatch<U>(
                 preposition: Preposition<M, U>,
-                resultAdded: (child: U) => WatchContext
+                resultAdded: (child: U) => WatchContext<VM>
             ) {
                 return j.watch(model, preposition, c => resultAdded(c), f => f.resultRemoved());
             }

@@ -1,5 +1,5 @@
 import { Jinaga, Preposition } from "jinaga";
-import { BeginWatch, FieldDeclaration, Mutator } from "./declaration";
+import { BeginWatch, FieldDeclaration, Mutator, WatchContext } from "./declaration";
 
 export interface Mutable<Fact, T> {
     candidates: { [hash: string]: Fact };
@@ -44,7 +44,7 @@ export function mutable<M, U, T>(
         beginWatch: BeginWatch<M>,
         mutator: Mutator<Mutable<U,T>>
     ) {
-        function resultAdded(child: U) {
+        function resultAdded(child: U): WatchContext<any> {
             const hash = Jinaga.hash(child);
             mutator(vm => {
                 const { candidates } = vm;
@@ -72,7 +72,8 @@ export function mutable<M, U, T>(
                         };
                         return newMutable;
                     });
-                }
+                },
+                mutator: t => {}
             };
         }
 

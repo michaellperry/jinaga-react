@@ -1,5 +1,5 @@
 import { Preposition } from "jinaga";
-import { FieldDeclaration, BeginWatch, Mutator } from "./declaration";
+import { BeginWatch, FieldDeclaration, Mutator, WatchContext } from "./declaration";
 
 /**
  * Set up a view model field that holds the value of a Jinaga property.
@@ -20,9 +20,12 @@ export function property<M, U, T>(
         beginWatch : BeginWatch<M>,
         mutator : Mutator<T>
     ) {
-        function resultAdded(child: U) {
+        function resultAdded(child: U): WatchContext<any> {
             mutator(_ => selector(child));
-            return () => {};
+            return {
+                resultRemoved: () =>{},
+                mutator: t => {}
+            };
         }
 
         const watch = beginWatch(preposition, resultAdded);
