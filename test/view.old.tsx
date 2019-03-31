@@ -1,8 +1,7 @@
-import { Jinaga as j, JinagaBrowser } from "jinaga";
-import { collection, field, mutable, projection, property, specificationFor, createJinagaComponent, ascending } from "../src";
-import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
-import { ApplicationState } from "./viewModel";
+import { Jinaga as j } from "jinaga";
 import * as React from "react";
+import { ascending, collection, field, mutable, property, specificationFor } from "../src";
+import { Item, Name, Root } from "./model";
 
 const itemSpec = specificationFor(Item, {
     hash: field(i => j.hash(i))
