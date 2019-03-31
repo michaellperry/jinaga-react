@@ -2,8 +2,8 @@ import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
 import { Store } from "../store/store";
+import { Transformer, WatchContext } from "./declaration";
 import { Mapping } from "./mapping";
-import { Transformer } from "./declaration";
 
 export function jinagaContainer<M, VM, P>(
     j: Jinaga,
@@ -16,7 +16,7 @@ export function jinagaContainer<M, VM, P>(
     }
     
     return class RootContainer extends React.Component<RootContainerProps, RootContainerState> {
-        private watches: Watch<M, () => void>[] = [];
+        private watches: Watch<M, WatchContext>[] = [];
         
         constructor(props: RootContainerProps) {
             super(props);
@@ -70,9 +70,9 @@ export function jinagaContainer<M, VM, P>(
 
             function beginWatch<U>(
                 preposition: Preposition<M, U>,
-                resultAdded: (child: U) => () => void
+                resultAdded: (child: U) => WatchContext
             ) {
-                return j.watch(model, preposition, c => resultAdded(c), f => f());
+                return j.watch(model, preposition, c => resultAdded(c), f => f.resultRemoved());
             }
 
             const mutator = (transformer: Transformer<VM>) => {

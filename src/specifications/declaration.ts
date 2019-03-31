@@ -1,8 +1,12 @@
 import { Preposition, Watch } from "jinaga";
 
+export interface WatchContext {
+    resultRemoved(): void;
+}
+
 export type BeginWatch<M> = <U>(
     preposition: Preposition<M, U>,
-    resultAdded: (child: U) => () => void) => Watch<U, () => void>;
+    resultAdded: (child: U) => WatchContext) => Watch<U, WatchContext>;
 
 export type Transformer<T> = (oldValue: T) => T;
 
@@ -13,7 +17,7 @@ export type FieldDeclaration<M, T> = {
     createWatches(
         beginWatch: BeginWatch<M>,
         mutator: Mutator<T>
-    ): Watch<M, () => void>[];
+    ): Watch<M, WatchContext>[];
 }
 
 export type ViewModelDeclaration<M> = {

@@ -58,19 +58,21 @@ export function mutable<M, U, T>(
                 };
                 return newMutable;
             });
-            return () => {
-                mutator(vm => {
-                    const { candidates } = vm;
-                    const { [hash]: fact, ...newCandidates } = candidates;
-                    const newValue = resolver(Object
-                        .keys(newCandidates)
-                        .map(key => newCandidates[key]));
-                    const newMutable = {
-                        candidates: newCandidates,
-                        value: newValue
-                    };
-                    return newMutable;
-                });
+            return {
+                resultRemoved: () => {
+                    mutator(vm => {
+                        const { candidates } = vm;
+                        const { [hash]: fact, ...newCandidates } = candidates;
+                        const newValue = resolver(Object
+                            .keys(newCandidates)
+                            .map(key => newCandidates[key]));
+                        const newMutable = {
+                            candidates: newCandidates,
+                            value: newValue
+                        };
+                        return newMutable;
+                    });
+                }
             };
         }
 

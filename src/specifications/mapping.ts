@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BeginWatch, Mutator } from "./declaration";
+import { BeginWatch, Mutator, WatchContext } from "./declaration";
 import { Watch } from "jinaga";
 
 export type Mapping<M, VM, P> = {
@@ -7,6 +7,6 @@ export type Mapping<M, VM, P> = {
     createWatches(
         beginWatch: BeginWatch<M>,
         mutator: Mutator<VM>
-    ): Watch<M, () => void>[];
+    ): Watch<M, WatchContext>[];
     PresentationComponent: React.ComponentType<VM & P>
 }
