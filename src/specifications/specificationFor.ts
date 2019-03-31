@@ -1,4 +1,4 @@
-import { FieldDeclaration, ViewModelDeclaration } from "./declaration";
+import { FieldDeclaration, ViewModelDeclaration, BeginWatch, Mutator } from "./declaration";
 import { Mapping } from "./mapping";
 
 type FieldType<M, D> = D extends FieldDeclaration<M, infer T> ? T : never;
@@ -22,12 +22,35 @@ export function specificationFor<M, VMD extends ViewModelDeclaration<M>>(
     type VM = ViewModel<M, VMD>;
 
     return PresentationComponent => {
+        function fieldMutator<K extends keyof VM>(
+            mutator: Mutator<VM>,
+            key: K
+        ): Mutator<VM[K]> {
+            return transformer => mutator(vm => ({
+                ...vm,
+                [key]: transformer(vm[key])
+            }));
+        }
+
+        function createWatches(
+            beginWatch: BeginWatch<M>,
+            mutator: Mutator<VM>
+        ) {
+            return Object.keys(declaration)
+                .map(key => declaration[key].createWatches(
+                    beginWatch,
+                    fieldMutator(mutator, key)
+                ))
+                .reduce((a,b) => a.concat(b));
+        }
+
         return {
             initialState: m => Object.keys(declaration)
                 .reduce((vm,key) => ({
                     ...vm,
                     [key]: declaration[key].initialState(m)
                 }), {} as VM),
+            createWatches,
             PresentationComponent
         };
     }

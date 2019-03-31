@@ -1,8 +1,9 @@
-import { Jinaga } from "jinaga";
+import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
 import { Store } from "../store/store";
 import { Mapping } from "./mapping";
+import { Transformer } from "./declaration";
 
 export function jinagaContainer<M, VM, P>(
     j: Jinaga,
@@ -15,12 +16,21 @@ export function jinagaContainer<M, VM, P>(
     }
     
     return class RootContainer extends React.Component<RootContainerProps, RootContainerState> {
+        private watches: Watch<M, () => void>[] = [];
+        
         constructor(props: RootContainerProps) {
             super(props);
-            const data = this.initialState();
             this.state = {
-                store: data ? { data } : null
+                store: null
             };
+        }
+
+        componentDidMount() {
+            this.startWatches();
+        }
+
+        componentWillUnmount() {
+            this.stopWatches();
         }
     
         render() {
@@ -47,6 +57,50 @@ export function jinagaContainer<M, VM, P>(
             return fact
                 ? mapping.initialState(fact)
                 : null;
+        }
+
+        private async startWatches() {
+            const model = this.props.fact as M | null;
+            if (!model) {
+                return;
+            }
+
+            this.setState({ store: null });
+            let localData = this.initialState();
+
+            function beginWatch<U>(
+                preposition: Preposition<M, U>,
+                resultAdded: (child: U) => () => void
+            ) {
+                return j.watch(model, preposition, c => resultAdded(c), f => f());
+            }
+
+            const mutator = (transformer: Transformer<VM>) => {
+                const data = this.state.store
+                    ? this.state.store.data as VM
+                    : localData;
+                if (data) {
+                    const newData = transformer(data);
+                    if (newData !== data) {
+                        if (this.state.store) {
+                            this.setState({ store: { data: newData } });
+                        }
+                        else {
+                            localData = newData;
+                        }
+                    }
+                }
+            }
+    
+            this.watches = mapping.createWatches(beginWatch, mutator);
+            await Promise.all(this.watches.map(w => w.load()));
+            this.setState({ store: { data: localData as VM } });
+            localData = null;
+        }
+
+        private stopWatches() {
+            this.watches.forEach(watch => watch.stop());
+            this.watches = [];
         }
     }
 }

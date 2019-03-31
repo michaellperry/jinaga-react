@@ -2,7 +2,7 @@ import { Jinaga, JinagaBrowser } from "jinaga";
 import * as React from "react";
 import { cleanup, render } from "react-testing-library";
 import { jinagaContainer } from "../src/specifications/jinagaContainer";
-import { Root } from "./model";
+import { Root, Name } from "./model";
 import { applicationMapping } from "./components/Application";
 
 describe("Specification For", () => {
@@ -24,9 +24,29 @@ describe("Specification For", () => {
         expect(identifier.innerHTML).toBe("Shalom");
     });
 
-    it("should resolve field", async () => {
-        const { findByTestId } = render(<Application fact={root} greeting="Shalom" />);
-        const identifier = await findByTestId("identifier") as HTMLElement;
-        expect(identifier).not.toBe(null);
+    it("should resolve fields", async () => {
+        const identifier = await whenGetIdentifier();
+        expect(identifier).toBe("home");
     });
+
+    it("should resolve properties", async () => {
+        await j.fact(new Name(new Root("home"), "Home", []));
+
+        const name = await whenGetName();
+        expect(name).toBe("Home");
+    });
+
+    async function whenGetIdentifier() {
+        return await whenGetTestValue("identifier");
+    }
+
+    async function whenGetName() {
+        return await whenGetTestValue("name");
+    }
+
+    async function whenGetTestValue(testId: string) {
+        const { findByTestId } = render(<Application fact={root} greeting="Hello" />);
+        const identifier = await findByTestId(testId) as HTMLElement;
+        return identifier.innerHTML;
+    }
 });
