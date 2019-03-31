@@ -8,7 +8,7 @@ import { applicationMapping } from "./components/Application";
 describe("Specification For", () => {
     var j: Jinaga;
     var root: Root;
-    var Application: React.ComponentType<{ fact: Root | undefined, greeting: string }>;
+    var Application: React.ComponentType<{ fact: Root | null, greeting: string }>;
 
     beforeEach(async () => {
         j = JinagaBrowser.create({});
@@ -18,7 +18,13 @@ describe("Specification For", () => {
 
     afterEach(cleanup);
 
-    it("should initialize the component", async () => {
+    it("should pass through properties", async () => {
+        const { findByTestId } = render(<Application fact={root} greeting="Shalom" />);
+        const identifier = await findByTestId("greeting") as HTMLElement;
+        expect(identifier.innerHTML).toBe("Shalom");
+    });
+
+    it("should resolve field", async () => {
         const { findByTestId } = render(<Application fact={root} greeting="Shalom" />);
         const identifier = await findByTestId("identifier") as HTMLElement;
         expect(identifier).not.toBe(null);
