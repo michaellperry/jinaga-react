@@ -11,6 +11,12 @@ interface RootContainerState {
 }
 
 export class RootContainer<M> extends React.Component<RootContainerProps<M>, RootContainerState> {
+    constructor(props: RootContainerProps<M>) {
+        super(props);
+        this.state = {
+            store: {}
+        };
+    }
 
     render() {
         return (

@@ -22,5 +22,7 @@ export function specificationFor<M, Spec extends ViewModelMappingSpecification<M
     modelConstructor: Type<M>,
     specs: Spec
 ): <P>(PresentationComponent: React.ComponentType<ViewModel<M, Spec> & P>) => Mapping<M, ViewModel<M, Spec>, P> {
-    throw new Error("Not yet implemented");
+    return PresentationComponent => {
+        return {};
+    }
 }

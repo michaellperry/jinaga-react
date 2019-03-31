@@ -6,7 +6,7 @@ const applicationSpec = specificationFor(Root, {
 
 });
 
-export const applicationMapping = applicationSpec(({}) => (
+export const applicationMapping = applicationSpec(({ greeting }: { greeting: string }) => (
     <>
     </>
 ))
