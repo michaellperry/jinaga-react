@@ -1,28 +1,34 @@
-type FieldMappingSpecification<M, T> = {
-}
+import { FieldDeclaration, ViewModelDeclaration } from "./declaration";
+import { Mapping } from "./mapping";
 
-type ViewModelMappingSpecification<M> = {
-    [key: string]: FieldMappingSpecification<M, any>;
-}
+type FieldType<M, D> = D extends FieldDeclaration<M, infer T> ? T : never;
 
-export type Mapping<M, VM, Props> = {
-}
-
-type FieldMappingOutput<M, FMS> = FMS extends FieldMappingSpecification<M, infer T> ? T : never;
-
-type ViewModel<M, FMS> = {
-    [F in keyof FMS]: FieldMappingOutput<M, FMS[F]>
+type ViewModel<M, D> = {
+    [F in keyof D]: FieldType<M, D[F]>
 }
 
 interface Type<T> extends Function {
     new (...args: any[]): T;
 }
 
-export function specificationFor<M, Spec extends ViewModelMappingSpecification<M>>(
+type Specification<M, VMD extends ViewModelDeclaration<M>> =
+    <P>(PresentationComponent: React.ComponentType<ViewModel<M, VMD> & P>) =>
+        Mapping<M, ViewModel<M, VMD>, P>;
+
+export function specificationFor<M, VMD extends ViewModelDeclaration<M>>(
     modelConstructor: Type<M>,
-    specs: Spec
-): <P>(PresentationComponent: React.ComponentType<ViewModel<M, Spec> & P>) => Mapping<M, ViewModel<M, Spec>, P> {
+    declaration: VMD
+): Specification<M, VMD> {
+    type VM = ViewModel<M, VMD>;
+
     return PresentationComponent => {
-        return {};
+        return {
+            initialState: m => Object.keys(declaration)
+                .reduce((vm,key) => ({
+                    ...vm,
+                    [key]: declaration[key].initialState(m)
+                }), {} as VM),
+            PresentationComponent
+        };
     }
 }
