@@ -34,7 +34,10 @@ export function property<M, U, T>(
     }
 
     return {
-        initialize: m => initialValue,
+        initialState: (m, refs) => ({
+            result: initialValue,
+            refs
+        }),
         createWatches
     };
 }

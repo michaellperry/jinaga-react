@@ -81,9 +81,12 @@ export function mutable<M, U, T>(
     }
 
     return {
-        initialize: m => ({
-            candidates: {},
-            value: resolver([])
+        initialState: (m, refs) => ({
+            result: {
+                candidates: {},
+                value: resolver([])
+            },
+            refs
         }),
         createWatches
     }

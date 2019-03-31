@@ -37,7 +37,7 @@ export function collection<M, U, VM, P>(
         constructor(props: ItemContainerProps) {
             super(props);
             this.state = {
-                data: mapping.initialState(this.props.fact)
+                data: mapping.initialState(this.props.fact, {}).result
             };
         }
 
@@ -189,7 +189,10 @@ export function collection<M, U, VM, P>(
     }
 
     return {
-        initialize: m => passThrough => <CollectionContainer passThrough={passThrough} />,
+        initialState: (m, refs) => ({
+            result: passThrough => <CollectionContainer passThrough={passThrough} />,
+            refs
+        }),
         createWatches
     }
 }

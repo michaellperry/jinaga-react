@@ -14,8 +14,10 @@ export type BeginWatch<M, P> = <U, C>(
     resultAdded: (parent: P, child: U) => C,
     resultRemoved: (context: C) => void) => Watch<U, C>;
 
+export type ContainerRefMap = { [key: string]: React.RefObject<IContainerComponent> };
+
 export type FieldMappingSpecification<M, T> = {
-    initialize(m: M): T;
+    initialState(m: M, refs: ContainerRefMap): { result: T, refs: ContainerRefMap };
     createWatches<C>(
         beginWatch: BeginWatch<M, C>,
         mutator: Mutator<C, T>,

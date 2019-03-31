@@ -1,18 +1,12 @@
 import { Watch, Preposition } from "jinaga";
 import * as React from "react";
-import { BeginWatch, Mutator, ViewModel, ViewModelMappingSpecification, GetComponent } from "./types";
+import { BeginWatch, Mutator, ViewModel, ViewModelMappingSpecification, GetComponent, ContainerRefMap, FieldMappingSpecification } from "./types";
 
 interface Type<T> extends Function {
     new (...args: any[]): T;
 }
 
-export interface SpecificationMapping<M, VM, Props> {
-    initialState(m: M): VM;
-    createWatches<P>(
-        beginWatch: BeginWatch<M,P>,
-        mutator: Mutator<P,VM>,
-        getComponent: GetComponent<P>
-    ): Watch<M, any>[];
+export type SpecificationMapping<M, VM, Props> = FieldMappingSpecification<M, VM> & {
     ItemComponent: React.ComponentType<VM & Props>
 }
 
@@ -67,10 +61,13 @@ export function specificationFor<M, Spec extends ViewModelMappingSpecification<M
         }
 
         return {
-            initialState: m => Object.keys(specs).reduce((vm,key) => ({
-                ...vm,
-                [key]: specs[key].initialize(m)
-            }), {} as VM),
+            initialState: (m, refs) => ({
+                result: Object.keys(specs).reduce((vm,key) => ({
+                    ...vm,
+                    [key]: specs[key].initialState(m, refs)
+                }), {} as VM),
+                refs
+            }),
             createWatches: (beginWatch, mutator, getComponent) => {
                 const watches = Object.keys(specs)
                     .map(key => specs[key].createWatches(

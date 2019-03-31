@@ -45,7 +45,7 @@ export function createJinagaComponent<M, VM, P>(
 
         private initialState(): VM | undefined {
             const fact = this.props.fact as M | undefined;
-            return fact ? connection.initialState(fact) : undefined;
+            return fact ? connection.initialState(fact, {}).result : undefined;
         }
 
         private async startWatches() {
