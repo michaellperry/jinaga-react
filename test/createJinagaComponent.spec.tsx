@@ -36,12 +36,41 @@ describe("Specification For", () => {
         expect(name).toBe("Home");
     });
 
+    it("should replace previous values", async () => {
+        const root = await j.fact(new Root("home"));
+        const first = await j.fact(new Name(root, "Home", []));
+        await j.fact(new Name(root, "Modified", [ first ]));
+
+        const name = await whenGetName();
+        expect(name).toBe("Modified");
+    });
+
+    it("should take second value in a conflict", async () => {
+        const root = await j.fact(new Root("home"));
+        await j.fact(new Name(root, "Home", []));
+        await j.fact(new Name(root, "Modified", []));
+
+        const name = await whenGetName();
+        expect(name).toBe("Modified");
+    });
+    
+    it("should resolve mutable", async () => {
+        await j.fact(new Name(new Root("home"), "Home", []));
+
+        const nameWithConflicts = await whenGetNameWithConflicts();
+        expect(nameWithConflicts).toBe("Home");
+    });
+
     async function whenGetIdentifier() {
         return await whenGetTestValue("identifier");
     }
 
     async function whenGetName() {
         return await whenGetTestValue("name");
+    }
+
+    async function whenGetNameWithConflicts() {
+        return await whenGetTestValue("nameWithConflicts");
     }
 
     async function whenGetTestValue(testId: string) {
