@@ -1,11 +1,9 @@
 import { Preposition, Watch } from "jinaga";
+import { ContainerRefMap, IContainerComponent, RefSlot } from "./refsAllocator";
 
 export type Transformer<T> = (oldValue: T) => T;
 
 export type Mutator<C, T> = (context: C, transformer: Transformer<T>) => void;
-
-export interface IContainerComponent {
-}
 
 export type GetComponent<C> = (context: C) => IContainerComponent | null;
 
@@ -14,10 +12,8 @@ export type BeginWatch<M, P> = <U, C>(
     resultAdded: (parent: P, child: U) => C,
     resultRemoved: (context: C) => void) => Watch<U, C>;
 
-export type ContainerRefMap = { [key: string]: React.RefObject<IContainerComponent> };
-
 export type FieldMappingSpecification<M, T> = {
-    initialState(m: M, refs: ContainerRefMap): { result: T, refs: ContainerRefMap };
+    initialState(m: M, slot: RefSlot): { result: T, refs: ContainerRefMap };
     createWatches<C>(
         beginWatch: BeginWatch<M, C>,
         mutator: Mutator<C, T>,

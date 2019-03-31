@@ -1,7 +1,8 @@
 import { Jinaga, Preposition } from "jinaga";
 import * as React from "react";
 import { SpecificationMapping } from "./specification";
-import { BeginWatch, FieldMappingSpecification, GetComponent, IContainerComponent, Mutator, Transformer } from "./types";
+import { BeginWatch, FieldMappingSpecification, GetComponent, Mutator, Transformer } from "./types";
+import { IContainerComponent, ContainerRefMap } from "./refsAllocator";
 
 export type Comparer<T> = (a: T, b: T) => number;
 
@@ -33,12 +34,16 @@ export function collection<M, U, VM, P>(
         data: VM;
     }
 
-    class ItemContainer extends React.Component<ItemContainerProps, ItemContainerState> {
+    class ItemContainer extends React.Component<ItemContainerProps, ItemContainerState> implements IContainerComponent {
+        private containerRefs: ContainerRefMap = {};
+        
         constructor(props: ItemContainerProps) {
             super(props);
+            const { result, refs } = mapping.initialState(this.props.fact, this.containerRefs);
             this.state = {
-                data: mapping.initialState(this.props.fact, {}).result
+                data: result
             };
+            this.containerRefs = refs;
         }
 
         render() {
@@ -66,7 +71,7 @@ export function collection<M, U, VM, P>(
 
     type ChildRefMap = { [hash: string]: React.RefObject<ItemContainer> };
 
-    class CollectionContainer extends React.Component<CollectionContainerProps, CollectionContainerState> {
+    class CollectionContainer extends React.Component<CollectionContainerProps, CollectionContainerState> implements IContainerComponent {
         private childRefs: ChildRefMap = {};
 
         constructor(props: CollectionContainerProps) {
@@ -189,10 +194,15 @@ export function collection<M, U, VM, P>(
     }
 
     return {
-        initialState: (m, refs) => ({
-            result: passThrough => <CollectionContainer passThrough={passThrough} />,
-            refs
-        }),
+        initialState: (m, slot) => {
+            const { ref, map } = slot.getRef();
+            return {
+                result: passThrough => <CollectionContainer
+                    ref={ref as React.Ref<CollectionContainer>}
+                    passThrough={passThrough} />,
+                refs: map
+            };
+        },
         createWatches
     }
 }

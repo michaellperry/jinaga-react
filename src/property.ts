@@ -34,9 +34,9 @@ export function property<M, U, T>(
     }
 
     return {
-        initialState: (m, refs) => ({
+        initialState: (m, slot) => ({
             result: initialValue,
-            refs
+            refs: slot.noRef()
         }),
         createWatches
     };

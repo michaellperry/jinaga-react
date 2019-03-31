@@ -1,12 +1,19 @@
-import { Watch, Preposition } from "jinaga";
+import { Preposition, Watch } from "jinaga";
 import * as React from "react";
-import { BeginWatch, Mutator, ViewModel, ViewModelMappingSpecification, GetComponent, ContainerRefMap, FieldMappingSpecification } from "./types";
+import { ContainerRefMap, RefSlot } from "./refsAllocator";
+import { BeginWatch, GetComponent, Mutator, ViewModel, ViewModelMappingSpecification } from "./types";
 
 interface Type<T> extends Function {
     new (...args: any[]): T;
 }
 
-export type SpecificationMapping<M, VM, Props> = FieldMappingSpecification<M, VM> & {
+export type SpecificationMapping<M, VM, Props> = {
+    initialState(m: M, refs: ContainerRefMap): { result: VM, refs: ContainerRefMap };
+    createWatches<C>(
+        beginWatch: BeginWatch<M, C>,
+        mutator: Mutator<C, VM>,
+        getComponent: GetComponent<C>
+    ): Watch<M, any>[];
     ItemComponent: React.ComponentType<VM & Props>
 }
 
@@ -64,7 +71,7 @@ export function specificationFor<M, Spec extends ViewModelMappingSpecification<M
             initialState: (m, refs) => ({
                 result: Object.keys(specs).reduce((vm,key) => ({
                     ...vm,
-                    [key]: specs[key].initialState(m, refs)
+                    [key]: specs[key].initialState(m, new RefSlot(key, refs))
                 }), {} as VM),
                 refs
             }),

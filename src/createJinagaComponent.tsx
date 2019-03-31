@@ -1,7 +1,8 @@
 import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { SpecificationMapping } from "./specification";
-import { Transformer, IContainerComponent } from "./types";
+import { Transformer } from "./types";
+import { ContainerRefMap } from "./refsAllocator";
 
 export function createJinagaComponent<M, VM, P>(
     j: Jinaga,
@@ -12,6 +13,7 @@ export function createJinagaComponent<M, VM, P>(
 
     return class extends React.Component<JinagaComponentProps, JinagaComponentState> {
         private watches: Watch<M, any>[] = [];
+        private containerRefs: ContainerRefMap = {};
         
         constructor(props: JinagaComponentProps) {
             super(props);
@@ -45,7 +47,14 @@ export function createJinagaComponent<M, VM, P>(
 
         private initialState(): VM | undefined {
             const fact = this.props.fact as M | undefined;
-            return fact ? connection.initialState(fact, {}).result : undefined;
+            if (fact) {
+                const { result, refs } = connection.initialState(fact, this.containerRefs);
+                this.containerRefs = refs;
+                return result;
+            }
+            else {
+                return undefined;
+            }
         }
 
         private async startWatches() {

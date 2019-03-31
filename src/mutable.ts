@@ -81,12 +81,12 @@ export function mutable<M, U, T>(
     }
 
     return {
-        initialState: (m, refs) => ({
+        initialState: (m, slot) => ({
             result: {
                 candidates: {},
                 value: resolver([])
             },
-            refs
+            refs: slot.noRef()
         }),
         createWatches
     }

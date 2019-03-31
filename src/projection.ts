@@ -13,10 +13,10 @@ export function projection<M, Spec extends ViewModelMappingSpecification<M>>(
     type ChildViewModel = ViewModel<M, Spec>;
 
     return {
-        initialState: (m, refs) => ({
+        initialState: (m, slot) => ({
             result: Object.keys(spec)
-                .reduce((vm,key) => ({ ...vm, [key]: spec[key].initialState(m, refs) }), <ChildViewModel>{}),
-            refs
+                .reduce((vm,key) => ({ ...vm, [key]: spec[key].initialState(m, slot) }), <ChildViewModel>{}),
+            refs: slot.noRef()
         }),
         createWatches: (beginWatch, mutator, getContainer) => Object.keys(spec)
             .map(key => spec[key].createWatches(beginWatch, (context, transformer) => (
