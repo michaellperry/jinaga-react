@@ -23,16 +23,6 @@ export function specificationFor<M, VMD extends ViewModelDeclaration<M>>(
     type VM = ViewModel<M, VMD>;
 
     return PresentationComponent => {
-        function fieldMutator<K extends keyof VM>(
-            mutator: Mutator<VM>,
-            key: K
-        ): Mutator<VM[K]> {
-            return transformer => mutator(vm => ({
-                ...vm,
-                [key]: transformer(vm[key])
-            }));
-        }
-
         function createMappingWatches(
             beginWatch: BeginWatch<M>,
             mutator: Mutator<Store>

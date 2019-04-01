@@ -1,10 +1,6 @@
 import { Jinaga as j } from "jinaga";
 import * as React from "react";
-import { ascending, collection } from "../../src/specifications/collection";
-import { field } from "../../src/specifications/field";
-import { mutable } from "../../src/specifications/mutable";
-import { property } from "../../src/specifications/property";
-import { specificationFor } from "../../src/specifications/specificationFor";
+import { ascending, collection, field, mutable, property, specificationFor } from "../../src";
 import { Item, Name, Root } from "../model";
 import { lineItemMapping } from "./LineItem";
 

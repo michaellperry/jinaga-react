@@ -1,7 +1,6 @@
 import { Jinaga as j } from "jinaga";
 import * as React from "react";
-import { field } from "../../src/specifications/field";
-import { specificationFor } from "../../src/specifications/specificationFor";
+import { field, specificationFor } from "../../src";
 import { Item } from "../model";
 
 const lineItemSpec = specificationFor(Item, {

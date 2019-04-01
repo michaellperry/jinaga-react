@@ -1,8 +1,6 @@
-export { ascending, collection, Comparer, descending } from "./collection";
-export { createJinagaComponent } from "./createJinagaComponent";
-export { field } from "./field";
-export { mutable, Mutable, prior } from "./mutable";
-export { projection } from "./projection";
-export { property } from "./property";
-export { specificationFor, SpecificationMapping } from "./specification";
-export { BeginWatch, FieldMappingOutput, FieldMappingSpecification, Mutator, Transformer, ViewModel, ViewModelMappingSpecification } from "./types";
+export { ascending, collection, Comparer, descending } from "./specifications/collection";
+export { field } from "./specifications/field";
+export { jinagaContainer } from "./specifications/jinagaContainer";
+export { mutable, Mutable, prior } from "./specifications/mutable";
+export { property } from "./specifications/property";
+export { specificationFor } from "./specifications/specificationFor";
