@@ -185,6 +185,9 @@ export function ascending<M, U, T>(
     initialValueOpt?: T
 ) {
     if (prepositionOrSelector instanceof Preposition) {
+        if (selectorOpt === undefined || initialValueOpt === undefined) {
+            throw new Error("Selector and initial value are required to order by a property");
+        }
         return orderByProperty(prepositionOrSelector, selectorOpt, initialValueOpt, ascendingComparer);
     }
     else {
@@ -206,6 +209,9 @@ export function descending<M, U, T>(
     initialValueOpt?: T
 ) {
     if (prepositionOrSelector instanceof Preposition) {
+        if (selectorOpt === undefined || initialValueOpt === undefined) {
+            throw new Error("Selector and initial value are required to order by a property");
+        }
         return orderByProperty(prepositionOrSelector, selectorOpt, initialValueOpt, descendingComparer);
     }
     else {

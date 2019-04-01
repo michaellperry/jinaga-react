@@ -109,7 +109,7 @@ export function setFieldValue<T>(fieldName: string, transformer: Transformer<T>)
     });
 }
 
-export function addStoreItem(path: StorePath, collectionName: string, hash: string, data: HashMap, orderBy: any, comparer: (a: any, b: any) => number | null) {
+export function addStoreItem(path: StorePath, collectionName: string, hash: string, data: HashMap, orderBy: any, comparer: ((a: any, b: any) => number) | null) {
     function sort(items: StoreItem[]) {
         return comparer ? items.sort((a,b) => comparer(a.orderBy, b.orderBy)) : items;
     }
