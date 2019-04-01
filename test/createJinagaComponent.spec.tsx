@@ -3,7 +3,7 @@ import * as React from "react";
 import { cleanup, render } from "react-testing-library";
 import { jinagaContainer } from "../src";
 import { applicationMapping } from "./components/Application";
-import { Item, Name, Root } from "./model";
+import { Item, Name, Root, ItemDeleted } from "./model";
 
 describe("Specification For", () => {
     var j: Jinaga;
@@ -85,6 +85,34 @@ describe("Specification For", () => {
         const itemHash = await whenGetTestValue("item_hash");
         expect(itemHash).toBe(j.hash(item));
     });
+
+    it("should remove from a collection", async () => {
+        const item = await j.fact(new Item(new Root("home"), new Date()));
+        await j.fact(new ItemDeleted(item));
+
+        const { queryByTestId } = render(<Application fact={root} greeting="Are you there?" />);
+        const element = await queryByTestId("item_hash");
+        expect(element).toBe(null);
+    });
+    
+    // it("should resolve sub items", async () => {
+    //     const item = await j.fact(new Item(new Root("home"), new Date()));
+    //     await j.fact(new SubItem(item, new Date()));
+    //     expect(application.state.items[0].subItems.length).to.equal(1);
+    // });
+
+    // it("should resolve fields of sub items", async () => {
+    //     const item = await j.fact(new Item(new Root("home"), new Date()));
+    //     const subItem = await j.fact(new SubItem(item, new Date()));
+    //     expect(application.state.items[0].subItems[0].createdAt).to.equal(subItem.cretedAt);
+    // });
+
+    // it("should resolve sub sub items", async () => {
+    //     const item = await j.fact(new Item(new Root("home"), new Date()));
+    //     const subItem = await j.fact(new SubItem(item, new Date()));
+    //     await j.fact(new SubSubItem(subItem, "reindeer flotilla"));
+    //     expect(application.state.items[0].subItems[0].subSubItems[0].id).to.equal("reindeer flotilla");
+    // });
 
     async function whenGetIdentifier() {
         return await whenGetTestValue("identifier");
