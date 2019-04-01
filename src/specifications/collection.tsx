@@ -1,7 +1,9 @@
 import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
+import { JinagaContext } from "../components/JinagaContext";
 import { Mapping } from "../specifications/mapping";
 import { BeginWatch, FieldDeclaration, Mutator, Transformer, WatchContext } from "./declaration";
+import { getStoreData, StorePath, getStoreItems, combineStorePath } from "../store/store";
 
 export type Comparer<T> = (a: T, b: T) => number;
 
@@ -24,38 +26,46 @@ export function collection<M, U, VM, P>(
     const PresentationComponent = mapping.PresentationComponent;
 
     interface ItemContainerProps {
-        hash: string;
+        path: StorePath;
         passThrough: P;
     }
 
     class ItemContainer extends React.Component<ItemContainerProps> {
+        static contextType = JinagaContext;
+        context!: React.ContextType<typeof JinagaContext>
+
         constructor(props: ItemContainerProps) {
             super(props);
         }
 
         render() {
-            const data = {} as VM;
+            const data = getStoreData(this.context, this.props.path) as VM;
             return <PresentationComponent {...{...data, ...this.props.passThrough}} />;
         }
     }
 
     interface CollectionContainerProps {
+        path: StorePath;
+        collectionName: string;
         passThrough: P;
     };
 
     class CollectionContainer extends React.Component<CollectionContainerProps> {
+        static contextType = JinagaContext;
+        context!: React.ContextType<typeof JinagaContext>
+
         constructor(props: CollectionContainerProps) {
             super(props);
         }
 
         render() {
-            const items = [] as ItemContainerProps[];
+            const items = getStoreItems(this.context, this.props.path, this.props.collectionName);
             return (
                 <>
                     { items.map(item =>
                         <ItemContainer
                             key={item.hash}
-                            hash={item.hash}
+                            path={combineStorePath(this.props.path, this.props.collectionName, item.hash)}
                             passThrough={this.props.passThrough} />
                     )}
                 </>
@@ -95,6 +105,8 @@ export function collection<M, U, VM, P>(
 
     return {
         initialState: m => props => <CollectionContainer
+            path={[]}
+            collectionName="Items"
             passThrough={props} />,
         createWatches
     }

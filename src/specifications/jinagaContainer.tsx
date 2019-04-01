@@ -66,7 +66,10 @@ export function jinagaContainer<M, VM, P>(
             }
 
             this.setState({ store: null });
-            let localData = this.initialState();
+            let localStore: Store | null = {
+                data: this.initialState() as VM,
+                items: {}
+            };
 
             function beginWatch<U>(
                 preposition: Preposition<M, U>,
@@ -76,17 +79,15 @@ export function jinagaContainer<M, VM, P>(
             }
 
             const mutator = (transformer: Transformer<VM>) => {
-                const data = this.state.store
-                    ? this.state.store.data as VM
-                    : localData;
-                if (data) {
-                    const newData = transformer(data);
-                    if (newData !== data) {
+                const store = this.state.store || localStore;
+                if (store) {
+                    const newData = transformer(store.data as VM);
+                    if (newData !== store.data) {
                         if (this.state.store) {
-                            this.setState({ store: { data: newData } });
+                            this.setState({ store });
                         }
                         else {
-                            localData = newData;
+                            store.data = newData;
                         }
                     }
                 }
@@ -94,8 +95,8 @@ export function jinagaContainer<M, VM, P>(
     
             this.watches = mapping.createWatches(beginWatch, mutator);
             await Promise.all(this.watches.map(w => w.load()));
-            this.setState({ store: { data: localData as VM } });
-            localData = null;
+            this.setState({ store: localStore });
+            localStore = null;
         }
 
         private stopWatches() {
