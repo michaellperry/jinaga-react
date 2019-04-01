@@ -1,5 +1,6 @@
 import { Jinaga, Preposition } from "jinaga";
-import { BeginWatch, FieldDeclaration, Mutator, WatchContext } from "./declaration";
+import { setFieldValue, setStoreData, Store, StorePath } from "../store/store";
+import { BeginWatch, FieldDeclaration, Mutator, Transformer, WatchContext } from "./declaration";
 
 export interface Mutable<Fact, T> {
     candidates: { [hash: string]: Fact };
@@ -40,40 +41,49 @@ export function mutable<M, U, T>(
     preposition: Preposition<M, U>,
     resolver: (candidates: U[]) => T
 ) : FieldDeclaration<M, Mutable<U, T>> {
-    function createWatches(
+    function valueOf(candidates: { [x: string]: U; }) {
+        return resolver(Object
+            .keys(candidates)
+            .map(key => candidates[key]));
+    }
+
+    function addCandidate(hash: string, child: U): Transformer<Mutable<U, T>> {
+        return oldMutable => {
+            const newCandidates = { ...oldMutable.candidates, [hash]: child };
+            const newValue = valueOf(newCandidates);
+            const newMutable = {
+                candidates: newCandidates,
+                value: newValue
+            };
+            return newMutable;
+        }
+    }
+
+    function removeCandidate(hash: string): Transformer<Mutable<U, T>> {
+        return oldMutable => {
+            const { [hash]: fact, ...newCandidates } = oldMutable.candidates;
+            const newValue = valueOf(newCandidates);
+            const newMutable = {
+                candidates: newCandidates,
+                value: newValue
+            };
+            return newMutable;
+        }
+    }
+
+    function createFieldWatches(
         beginWatch: BeginWatch<M>,
-        mutator: Mutator<Mutable<U,T>>
+        mutator: Mutator<Store>,
+        fieldName: string
     ) {
-        function resultAdded(child: U): WatchContext<any> {
+        function resultAdded(path: StorePath, child: U): WatchContext {
             const hash = Jinaga.hash(child);
-            mutator(vm => {
-                const { candidates } = vm;
-                const newCandidates = { ...candidates, [hash]: child };
-                const newValue = resolver(Object
-                    .keys(newCandidates)
-                    .map(key => newCandidates[key]));
-                const newMutable = {
-                    candidates: newCandidates,
-                    value: newValue
-                };
-                return newMutable;
-            });
+            mutator(setStoreData(path, setFieldValue(fieldName, addCandidate(hash, child))));
             return {
                 resultRemoved: () => {
-                    mutator(vm => {
-                        const { candidates } = vm;
-                        const { [hash]: fact, ...newCandidates } = candidates;
-                        const newValue = resolver(Object
-                            .keys(newCandidates)
-                            .map(key => newCandidates[key]));
-                        const newMutable = {
-                            candidates: newCandidates,
-                            value: newValue
-                        };
-                        return newMutable;
-                    });
+                    mutator(setStoreData(path, setFieldValue(fieldName, removeCandidate(hash))));
                 },
-                mutator: t => {}
+                storePath: path
             };
         }
 
@@ -82,10 +92,10 @@ export function mutable<M, U, T>(
     }
 
     return {
-        initialState: m => ({
+        initialFieldState: () => ({
             candidates: {},
             value: resolver([])
         }),
-        createWatches
+        createFieldWatches
     }
 }

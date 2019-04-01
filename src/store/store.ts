@@ -48,7 +48,7 @@ export function combineStorePath(path: StorePath, collectionName: string, hash: 
     return [ ...path, { collectionName, hash } ];
 }
 
-function transformStoreItem(store: Store, path: StorePath, transformer: Transformer<StoreItem>) {
+function transformStoreItem(path: StorePath, transformer: Transformer<StoreItem>): Transformer<Store> {
     const t = path.reduceRight((t,p) => (storeItem: StoreItem) => {
         const items = storeItem.items[p.collectionName];
         if (!items) {
@@ -66,43 +66,45 @@ function transformStoreItem(store: Store, path: StorePath, transformer: Transfor
             };
         }
     }, transformer);
-    return t(store as StoreItem) as Store;
+    return store => t(store as StoreItem) as Store;
 }
 
-export function setStoreData(store: Store, path: StorePath, transformer: Transformer<HashMap>) {
-    return transformStoreItem(store, path, storeItem => ({
+export function setStoreData(path: StorePath, transformer: Transformer<HashMap>) {
+    return transformStoreItem(path, storeItem => ({
         ...storeItem,
         data: transformer(storeItem.data)
     }));
 }
 
-export function addStoreItem(store: Store, path: StorePath, collectionName: string, hash: string, data: HashMap) {
-    return transformStoreItem(store, path, storeItem => {
-        const items = storeItem.items[collectionName];
-        if (!items) {
-            return storeItem;
-        }
-        else {
-            return {
-                ...storeItem,
-                items: {
-                    ...storeItem.items,
-                    [collectionName]: [
-                        ...items,
-                        {
-                            hash,
-                            data,
-                            items: {}
-                        }
-                    ]
-                }
-            };
-        }
+export function setFieldValue<T>(fieldName: string, transformer: Transformer<T>): Transformer<HashMap> {
+    return data => ({
+        ...data,
+        [fieldName]: transformer(data[fieldName])
     });
 }
 
-export function removeStoreItem(store: Store, path: StorePath, collectionName: string, hash: string) {
-    return transformStoreItem(store, path, storeItem => {
+export function addStoreItem(path: StorePath, collectionName: string, hash: string, data: HashMap) {
+    return transformStoreItem(path, storeItem => {
+        const items = storeItem.items[collectionName] || [];
+        return {
+            ...storeItem,
+            items: {
+                ...storeItem.items,
+                [collectionName]: [
+                    ...items,
+                    {
+                        hash,
+                        data,
+                        items: {}
+                    }
+                ]
+            }
+        };
+    });
+}
+
+export function removeStoreItem(path: StorePath, collectionName: string, hash: string) {
+    return transformStoreItem(path, storeItem => {
         const items = storeItem.items[collectionName];
         if (!items) {
             return storeItem;

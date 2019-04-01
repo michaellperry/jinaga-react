@@ -9,7 +9,7 @@ import { FieldDeclaration } from "./declaration";
  */
 export function field<M, T>(selector: (m: M) => T): FieldDeclaration<M, T> {
     return {
-        initialState: m => selector(m),
-        createWatches: (beginWatch, mutator) => []
+        initialFieldState: m => selector(m),
+        createFieldWatches: () => []
     };
 }

@@ -1,7 +1,7 @@
 import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
-import { Store } from "../store/store";
+import { Store, StorePath } from "../store/store";
 import { Transformer, WatchContext } from "./declaration";
 import { Mapping } from "./mapping";
 
@@ -16,7 +16,7 @@ export function jinagaContainer<M, VM, P>(
     }
     
     return class RootContainer extends React.Component<RootContainerProps, RootContainerState> {
-        private watches: Watch<M, WatchContext<VM>>[] = [];
+        private watches: Watch<M, WatchContext>[] = [];
         
         constructor(props: RootContainerProps) {
             super(props);
@@ -52,13 +52,6 @@ export function jinagaContainer<M, VM, P>(
             }
         }
 
-        private initialState(): VM | null {
-            const fact = this.props.fact as M | null;
-            return fact
-                ? mapping.initialState(fact)
-                : null;
-        }
-
         private async startWatches() {
             const model = this.props.fact as M | null;
             if (!model) {
@@ -67,33 +60,30 @@ export function jinagaContainer<M, VM, P>(
 
             this.setState({ store: null });
             let localStore: Store | null = {
-                data: this.initialState() as VM,
+                data: mapping.initialMappingState(model, []),
                 items: {}
             };
 
             function beginWatch<U>(
                 preposition: Preposition<M, U>,
-                resultAdded: (child: U) => WatchContext<VM>
+                resultAdded: (path: StorePath, child: U) => WatchContext
             ) {
-                return j.watch(model, preposition, c => resultAdded(c), f => f.resultRemoved());
+                return j.watch(model, preposition, c => resultAdded([], c), f => f.resultRemoved());
             }
 
-            const mutator = (transformer: Transformer<VM>) => {
+            const mutator = (transformer: Transformer<Store>) => {
                 const store = this.state.store || localStore;
                 if (store) {
-                    const newData = transformer(store.data as VM);
-                    if (newData !== store.data) {
-                        if (this.state.store) {
-                            this.setState({ store });
-                        }
-                        else {
-                            store.data = newData;
-                        }
+                    if (this.state.store) {
+                        this.setState({ store: transformer(store) });
+                    }
+                    else {
+                        localStore = transformer(store);
                     }
                 }
             }
     
-            this.watches = mapping.createWatches(beginWatch, mutator);
+            this.watches = mapping.createMappingWatches(beginWatch, mutator);
             await Promise.all(this.watches.map(w => w.load()));
             this.setState({ store: localStore });
             localStore = null;

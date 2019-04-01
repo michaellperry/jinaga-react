@@ -1,26 +1,28 @@
 import { Preposition, Watch } from "jinaga";
+import { Store, StorePath } from "../store/store";
 
 export type Transformer<T> = (oldValue: T) => T;
 
 export type Mutator<T> = (transformer: Transformer<T>) => void;
 
-export interface WatchContext<VM> {
+export interface WatchContext {
     resultRemoved(): void;
-    mutator: Mutator<VM>;
+    storePath: StorePath;
 }
 
 export type BeginWatch<M> = <U>(
     preposition: Preposition<M, U>,
-    resultAdded: (child: U) => WatchContext<any>) => Watch<U, WatchContext<any>>;
+    resultAdded: (path: StorePath, child: U) => WatchContext) => Watch<U, WatchContext>;
 
 export type FieldDeclaration<M, T> = {
-    initialState(m: M): T;
-    createWatches(
+    initialFieldState(m: M, path: StorePath, fieldName: string): T;
+    createFieldWatches(
         beginWatch: BeginWatch<M>,
-        mutator: Mutator<T>
-    ): Watch<M, WatchContext<any>>[];
+        mutator: Mutator<Store>,
+        fieldName: string
+    ): Watch<M, WatchContext>[];
 }
 
 export type ViewModelDeclaration<M> = {
-    [key: string]: FieldDeclaration<M, any>;
+    [fieldName: string]: FieldDeclaration<M, any>;
 }

@@ -1,4 +1,5 @@
 import { Preposition } from "jinaga";
+import { setFieldValue, setStoreData, Store, StorePath } from "../store/store";
 import { BeginWatch, FieldDeclaration, Mutator, WatchContext } from "./declaration";
 
 /**
@@ -17,14 +18,15 @@ export function property<M, U, T>(
     initialValue: T
 ) : FieldDeclaration<M, T> {
     function createWatches(
-        beginWatch : BeginWatch<M>,
-        mutator : Mutator<T>
+        beginWatch: BeginWatch<M>,
+        mutator: Mutator<Store>,
+        fieldName: string
     ) {
-        function resultAdded(child: U): WatchContext<any> {
-            mutator(_ => selector(child));
+        function resultAdded(path: StorePath, child: U): WatchContext {
+            mutator(setStoreData(path, setFieldValue(fieldName, () => selector(child))));
             return {
                 resultRemoved: () =>{},
-                mutator: t => {}
+                storePath: path
             };
         }
 
@@ -34,7 +36,7 @@ export function property<M, U, T>(
     }
 
     return {
-        initialState: m => initialValue,
-        createWatches
+        initialFieldState: () => initialValue,
+        createFieldWatches: createWatches
     };
 }

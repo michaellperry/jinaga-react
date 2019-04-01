@@ -1,12 +1,13 @@
-import * as React from "react";
-import { BeginWatch, Mutator, WatchContext } from "./declaration";
 import { Watch } from "jinaga";
+import * as React from "react";
+import { Store, StorePath } from "../store/store";
+import { BeginWatch, Mutator, WatchContext } from "./declaration";
 
 export type Mapping<M, VM, P> = {
-    initialState(m: M): VM;
-    createWatches(
+    initialMappingState(m: M, path: StorePath): VM;
+    createMappingWatches(
         beginWatch: BeginWatch<M>,
-        mutator: Mutator<VM>
-    ): Watch<M, WatchContext<VM>>[];
+        mutator: Mutator<Store>
+    ): Watch<M, WatchContext>[];
     PresentationComponent: React.ComponentType<VM & P>
 }

@@ -3,7 +3,7 @@ import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
 import { Mapping } from "../specifications/mapping";
 import { BeginWatch, FieldDeclaration, Mutator, Transformer, WatchContext } from "./declaration";
-import { getStoreData, StorePath, getStoreItems, combineStorePath } from "../store/store";
+import { getStoreData, StorePath, getStoreItems, combineStorePath, addStoreItem, Store, removeStoreItem } from "../store/store";
 
 export type Comparer<T> = (a: T, b: T) => number;
 
@@ -75,13 +75,19 @@ export function collection<M, U, VM, P>(
     
     function createWatches(
         beginWatch: BeginWatch<M>,
-        mutator: Mutator<(passThrough: P) => JSX.Element>
+        mutator: Mutator<Store>,
+        fieldName: string
     ) {
-        function resultAdded(child: U): WatchContext<VM> {
+        function resultAdded(path: StorePath, child: U): WatchContext {
             const hash = Jinaga.hash(child);
+            const childPath = combineStorePath(path, fieldName, hash);
+            const initialState = mapping.initialMappingState(child, childPath);
+            mutator(addStoreItem(path, fieldName, hash, initialState));
             return {
-                resultRemoved: () => {},
-                mutator: t => {}
+                resultRemoved: () => {
+                    mutator(removeStoreItem(path, fieldName, hash));
+                },
+                storePath: childPath
             }
         }
 
@@ -89,26 +95,25 @@ export function collection<M, U, VM, P>(
 
         function beginChildWatch<C>(
             preposition: Preposition<U,C>,
-            resultAdded: (child: C) => WatchContext<any>
-        ): Watch<C, WatchContext<any>> {
-            return watch.watch(preposition, ({resultRemoved, mutator}) => (child: C) => {
-                return resultAdded(child);
-            });
+            resultAdded: (path: StorePath, child: C) => WatchContext
+        ): Watch<C, WatchContext> {
+            return watch.watch(
+                preposition,
+                ({ storePath }, c) => resultAdded(storePath, c),
+                ({ resultRemoved }) => { resultRemoved(); }
+            );
         }
 
-        function childMutator(transformer: Transformer<VM>) {
-        }
-
-        mapping.createWatches(beginChildWatch, childMutator);
+        mapping.createMappingWatches(beginChildWatch, mutator);
         return [ watch ];
     }
 
     return {
-        initialState: m => props => <CollectionContainer
-            path={[]}
-            collectionName="Items"
+        initialFieldState: (m, path, fieldName) => props => <CollectionContainer
+            path={path}
+            collectionName={fieldName}
             passThrough={props} />,
-        createWatches
+        createFieldWatches: createWatches
     }
 }
 
