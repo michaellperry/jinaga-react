@@ -2,26 +2,31 @@ import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
 import { Mapping } from "../specifications/mapping";
-import { BeginWatch, FieldDeclaration, Mutator, Transformer, WatchContext } from "./declaration";
-import { getStoreData, StorePath, getStoreItems, combineStorePath, addStoreItem, Store, removeStoreItem } from "../store/store";
+import { addStoreItem, combineStorePath, getStoreData, getStoreItems, removeStoreItem, setStoreOrderBy, Store, StorePath } from "../store/store";
+import { BeginWatch, FieldDeclaration, Mutator, WatchContext } from "./declaration";
 
-export type Comparer<T> = (a: T, b: T) => number;
+export interface OrderByDeclaration<M, T> {
+    initialOrderByState(m: M): T;
+    createOrderByWatches(
+        beginWatch: BeginWatch<M>,
+        mutator: Mutator<Store>
+    ): Watch<M, WatchContext>[];
+    comparer(a: T, b: T): number;
+}
 
 /**
- * Set up a collection of child view models.
- * The associated field in the parent view model is an array of children.
- * Declare the specifications for the child fields.
- * Children must have a field that uniquely identifies them, such as a hash.
- * Declare a hash using systax such as `field('key', x => j.hash(x))`.
+ * Set up a collection of child components.
+ * The associated property is a render prop that produces the list of children.
+ * Capitalize the property name so that it can be used as a React element.
  * 
  * @param preposition A Jinaga preposition using `j.for`
  * @param mapping A specification mapping for the child elements
- * @param comparer (Optional) A comparison function used to sort the collection
+ * @param orderBy (Optional) A comparison function used to sort the collection
  */
-export function collection<M, U, VM, P>(
-    preposition: Preposition<M,U>,
-    mapping: Mapping<U,VM,P>,
-    comparer: Comparer<U>
+export function collection<M, U, VM, P, T>(
+    preposition: Preposition<M, U>,
+    mapping: Mapping<U, VM, P>,
+    orderBy?: OrderByDeclaration<U, T>
 ): FieldDeclaration<M, (props: P) => JSX.Element> {
     const PresentationComponent = mapping.PresentationComponent;
 
@@ -82,7 +87,8 @@ export function collection<M, U, VM, P>(
             const hash = Jinaga.hash(child);
             const childPath = combineStorePath(path, fieldName, hash);
             const initialState = mapping.initialMappingState(child, childPath);
-            mutator(addStoreItem(path, fieldName, hash, initialState));
+            const initialOrderByState = orderBy ? orderBy.initialOrderByState(child) : null;
+            mutator(addStoreItem(path, fieldName, hash, initialState, initialOrderByState, orderBy ? orderBy.comparer : null));
             return {
                 resultRemoved: () => {
                     mutator(removeStoreItem(path, fieldName, hash));
@@ -105,6 +111,10 @@ export function collection<M, U, VM, P>(
         }
 
         mapping.createMappingWatches(beginChildWatch, mutator);
+        if (orderBy) {
+            orderBy.createOrderByWatches(beginChildWatch, mutator);
+        }
+
         return [ watch ];
     }
 
@@ -117,18 +127,88 @@ export function collection<M, U, VM, P>(
     }
 }
 
-export function ascending<T, F>(field: (m: T) => F) : Comparer<T> {
-    return (a, b) => {
-        const fa = field(a);
-        const fb = field(b);
-        return fa < fb ? -1 : fa > fb ? 1 : 0;;
+const ascendingComparer:  <T>(a: T, b: T) => number = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+const descendingComparer: <T>(a: T, b: T) => number = (a, b) => a > b ? -1 : a < b ? 1 : 0;
+
+function orderByProperty<M, U, T>(
+    preposition: Preposition<M, U>,
+    selector: (m: U) => T,
+    initialValue: T,
+    comparer: (a: T, b: T) => number
+): OrderByDeclaration<M, T> {
+    function createWatches(
+        beginWatch: BeginWatch<M>,
+        mutator: Mutator<Store>
+    ) {
+        function resultAdded(path: StorePath, child: U): WatchContext {
+            mutator(setStoreOrderBy(path, () => selector(child), comparer));
+            return {
+                resultRemoved: () =>{},
+                storePath: path
+            };
+        }
+
+        const watch = beginWatch(preposition, resultAdded);
+
+        return [watch];
+    }
+
+    return {
+        initialOrderByState: () => initialValue,
+        createOrderByWatches: createWatches,
+        comparer
     };
 }
 
-export function descending<T, F>(field: (m: T) => F) : Comparer<T> {
-    return (a, b) => {
-        const fa = field(a);
-        const fb = field(b);
-        return fa < fb ? 1 : fa > fb ? -1 : 0;;
+function orderByField<M, T>(
+    selector: (m: M) => T,
+    comparer: (a: T, b: T) => number
+): OrderByDeclaration<M, T> {
+    return {
+        initialOrderByState: selector,
+        createOrderByWatches: () => [],
+        comparer
     };
+}
+
+export function ascending<M, U, T>(
+    preposition: Preposition<M, U>,
+    selector: (m: U) => T,
+    initialValue: T
+): OrderByDeclaration<M, T>;
+export function ascending<M, T>(
+    selector: (m: M) => T
+): OrderByDeclaration<M, T>;
+export function ascending<M, U, T>(
+    prepositionOrSelector: Preposition<M, U> | ((m: M) => T),
+    selectorOpt?: (m: U) => T,
+    initialValueOpt?: T
+) {
+    if (prepositionOrSelector instanceof Preposition) {
+        return orderByProperty(prepositionOrSelector, selectorOpt, initialValueOpt, ascendingComparer);
+    }
+    else {
+        return orderByField(prepositionOrSelector, ascendingComparer);
+    }
+}
+
+export function descending<M, U, T>(
+    preposition: Preposition<M, U>,
+    selector: (m: U) => T,
+    initialValue: T
+): OrderByDeclaration<M, T>;
+export function descending<M, T>(
+    selector: (m: M) => T
+): OrderByDeclaration<M, T>;
+export function descending<M, U, T>(
+    prepositionOrSelector: Preposition<M, U> | ((m: M) => T),
+    selectorOpt?: (m: U) => T,
+    initialValueOpt?: T
+) {
+    if (prepositionOrSelector instanceof Preposition) {
+        return orderByProperty(prepositionOrSelector, selectorOpt, initialValueOpt, descendingComparer);
+    }
+    else {
+        return orderByField(prepositionOrSelector, descendingComparer);
+    }
 }

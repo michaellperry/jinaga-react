@@ -1,7 +1,7 @@
 import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
-import { Store, StorePath } from "../store/store";
+import { createStore, Store, StorePath } from "../store/store";
 import { Transformer, WatchContext } from "./declaration";
 import { Mapping } from "./mapping";
 
@@ -59,10 +59,7 @@ export function jinagaContainer<M, VM, P>(
             }
 
             this.setState({ store: null });
-            let localStore: Store | null = {
-                data: mapping.initialMappingState(model, []),
-                items: {}
-            };
+            let localStore: Store | null = createStore(mapping.initialMappingState(model, []));
 
             function beginWatch<U>(
                 preposition: Preposition<M, U>,

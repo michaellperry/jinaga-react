@@ -6,7 +6,7 @@ type HashMap = {
 
 interface StoreItem {
     hash: string;
-    //orderBy: T;
+    orderBy: any;
     data: HashMap;
     items: { [collectionName: string]: StoreItem[] };
 }
@@ -14,6 +14,13 @@ interface StoreItem {
 export interface Store {
     data: HashMap;
     items: { [collectionName: string]: StoreItem[] };
+}
+
+export function createStore(data: HashMap): Store {
+    return {
+        data,
+        items: {}
+    };
 }
 
 export type StorePath = {
@@ -76,6 +83,25 @@ export function setStoreData(path: StorePath, transformer: Transformer<HashMap>)
     }));
 }
 
+export function setStoreOrderBy(path: StorePath, transformer: Transformer<any>, comparer: (a: any, b: any) => number) {
+    const parentPath = path.slice(0, path.length-1);
+    const { hash, collectionName } = path[path.length-1];
+    return transformStoreItem(parentPath, storeItem => {
+        const items = storeItem.items[collectionName] || [];
+        return {
+            ...storeItem,
+            items: {
+                ...storeItem.items,
+                [collectionName]: items
+                    .map(item => item.hash === hash
+                        ? { ...item, orderBy: transformer(item.orderBy) }
+                        : item)
+                    .sort((a,b) => comparer(a.orderBy, b.orderBy))
+            }
+        };
+    });
+}
+
 export function setFieldValue<T>(fieldName: string, transformer: Transformer<T>): Transformer<HashMap> {
     return data => ({
         ...data,
@@ -83,21 +109,25 @@ export function setFieldValue<T>(fieldName: string, transformer: Transformer<T>)
     });
 }
 
-export function addStoreItem(path: StorePath, collectionName: string, hash: string, data: HashMap) {
+export function addStoreItem(path: StorePath, collectionName: string, hash: string, data: HashMap, orderBy: any, comparer: (a: any, b: any) => number | null) {
+    function sort(items: StoreItem[]) {
+        return comparer ? items.sort((a,b) => comparer(a.orderBy, b.orderBy)) : items;
+    }
     return transformStoreItem(path, storeItem => {
         const items = storeItem.items[collectionName] || [];
         return {
             ...storeItem,
             items: {
                 ...storeItem.items,
-                [collectionName]: [
+                [collectionName]: sort([
                     ...items,
                     {
                         hash,
                         data,
+                        orderBy,
                         items: {}
                     }
-                ]
+                ])
             }
         };
     });

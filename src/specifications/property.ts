@@ -17,7 +17,7 @@ export function property<M, U, T>(
     selector: (m: U) => T,
     initialValue: T
 ) : FieldDeclaration<M, T> {
-    function createWatches(
+    function createFieldWatches(
         beginWatch: BeginWatch<M>,
         mutator: Mutator<Store>,
         fieldName: string
@@ -37,6 +37,6 @@ export function property<M, U, T>(
 
     return {
         initialFieldState: () => initialValue,
-        createFieldWatches: createWatches
+        createFieldWatches
     };
 }
