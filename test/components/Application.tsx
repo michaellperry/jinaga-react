@@ -25,6 +25,6 @@ export const applicationMapping = applicationSpec<ApplicationExtraProps>(
         <p data-testid="identifier">{identifier}</p>
         <p data-testid="name">{name}</p>
         <p data-testid="nameWithConflicts">{nameWithConflicts.value}</p>
-        <Items />
+        <Items greeting={`Hola! ${greeting}!`} />
     </>
 ))

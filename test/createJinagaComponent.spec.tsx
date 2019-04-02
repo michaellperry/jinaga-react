@@ -3,7 +3,7 @@ import * as React from "react";
 import { cleanup, render } from "react-testing-library";
 import { jinagaContainer } from "../src";
 import { applicationMapping } from "./components/Application";
-import { Item, Name, Root, ItemDeleted } from "./model";
+import { Item, Name, Root, ItemDeleted, SubItem, SubSubItem } from "./model";
 
 describe("Specification For", () => {
     var j: Jinaga;
@@ -94,25 +94,35 @@ describe("Specification For", () => {
         const element = await queryByTestId("item_hash");
         expect(element).toBe(null);
     });
+
+    it("should pass parameters to collections", async () => {
+        await j.fact(new Item(new Root("home"), new Date()));
+
+        const { findByTestId } = render(<Application fact={root} greeting="Bienvenidos" />);
+        const element = await findByTestId("item_greeting");
+        expect(element).toBeInstanceOf(HTMLElement);
+        if (element instanceof HTMLElement) {
+            expect(element.innerHTML).toBe("Hola! Bienvenidos!");
+        }
+    });
     
-    // it("should resolve sub items", async () => {
-    //     const item = await j.fact(new Item(new Root("home"), new Date()));
-    //     await j.fact(new SubItem(item, new Date()));
-    //     expect(application.state.items[0].subItems.length).to.equal(1);
-    // });
+    it("should resolve fields of sub items", async () => {
+        const item = await j.fact(new Item(new Root("home"), new Date()));
+        const expected = new Date();
+        await j.fact(new SubItem(item, expected));
 
-    // it("should resolve fields of sub items", async () => {
-    //     const item = await j.fact(new Item(new Root("home"), new Date()));
-    //     const subItem = await j.fact(new SubItem(item, new Date()));
-    //     expect(application.state.items[0].subItems[0].createdAt).to.equal(subItem.cretedAt);
-    // });
+        const subItemCreatedAt = await whenGetTestValue("subitem_createdat");
+        expect(subItemCreatedAt).toBe(expected.toISOString());
+    });
 
-    // it("should resolve sub sub items", async () => {
-    //     const item = await j.fact(new Item(new Root("home"), new Date()));
-    //     const subItem = await j.fact(new SubItem(item, new Date()));
-    //     await j.fact(new SubSubItem(subItem, "reindeer flotilla"));
-    //     expect(application.state.items[0].subItems[0].subSubItems[0].id).to.equal("reindeer flotilla");
-    // });
+    it("should resolve sub sub items", async () => {
+        const item = await j.fact(new Item(new Root("home"), new Date()));
+        const subItem = await j.fact(new SubItem(item, new Date()));
+        await j.fact(new SubSubItem(subItem, "reindeer flotilla"));
+
+        const subSubItemId = await whenGetTestValue("subsubitem_id");
+        expect(subSubItemId).toBe("reindeer flotilla");
+    });
 
     async function whenGetIdentifier() {
         return await whenGetTestValue("identifier");

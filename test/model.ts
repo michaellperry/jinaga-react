@@ -80,7 +80,7 @@ export class SubItem {
 
     constructor(
         public item: Item,
-        public cretedAt: Date | string
+        public createdAt: Date | string
     ) { }
 
     static inItem(i: Item) {
