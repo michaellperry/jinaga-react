@@ -124,6 +124,26 @@ describe("Specification For", () => {
         expect(subSubItemId).toBe("reindeer flotilla");
     });
 
+    it("should get new fields when fact changes", async () => {
+        const { findByTestId, rerender } = render(<Application fact={root} greeting="Hello" />);
+        const identifier = await findByTestId("identifier") as HTMLElement;
+        expect(identifier.innerHTML).toBe("home");
+
+        rerender(<Application fact={new Root("away")} greeting="Goodby" />);
+        const secondIdentifier = await findByTestId("identifier") as HTMLElement;
+        expect(secondIdentifier.innerHTML).toBe("away");
+    });
+
+    it("should get new props when they change", async () => {
+        const { findByTestId, rerender } = render(<Application fact={root} greeting="Hello" />);
+        const greeting = await findByTestId("greeting") as HTMLElement;
+        expect(greeting.innerHTML).toBe("Hello");
+
+        rerender(<Application fact={root} greeting="Goodby" />);
+        const secondGreeting = await findByTestId("greeting") as HTMLElement;
+        expect(secondGreeting.innerHTML).toBe("Goodby");
+    });
+
     async function whenGetIdentifier() {
         return await whenGetTestValue("identifier");
     }

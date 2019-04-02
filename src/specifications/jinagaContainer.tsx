@@ -32,7 +32,15 @@ export function jinagaContainer<M, VM, P>(
         componentWillUnmount() {
             this.stopWatches();
         }
-    
+
+        componentDidUpdate(prevProps: RootContainerProps) {
+            if (prevProps.fact !== this.props.fact) {
+                this.stopWatches();
+                this.setState({ store: null });
+                this.startWatches();
+            }
+        }
+
         render() {
             const PresentationComponent = mapping.PresentationComponent;
             const { fact, ...rest } = this.props;
