@@ -47,17 +47,14 @@ export function jinagaContainer<M, VM, P>(
             const passThrough = rest as P;
             const store = this.state.store;
 
-            if (store) {
-                const data = store.data as VM;
-                return (
+            const vm = store ? mapping.getMappingValue(store) : null;
+            return vm
+                ? (
                     <JinagaContext.Provider value={this.state.store}>
-                        <PresentationComponent {...{...data, ...passThrough}} />
+                        <PresentationComponent {...{...vm, ...passThrough}} />
                     </JinagaContext.Provider>
-                );
-            }
-            else {
-                return <></>;
-            }
+                )
+                : <></>;
         }
 
         private async startWatches() {

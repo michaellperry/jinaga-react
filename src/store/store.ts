@@ -4,11 +4,9 @@ type HashMap = {
     [key: string]: any
 }
 
-interface StoreItem {
+type StoreItem = Store & {
     hash: string;
     orderBy: any;
-    data: HashMap;
-    items: { [collectionName: string]: StoreItem[] };
 }
 
 export interface Store {
@@ -28,7 +26,7 @@ export type StorePath = {
     hash: string;
 }[];
 
-function findItems(s: StoreItem | null, key: string) {
+function findItems(s: Store | null, key: string) {
     return s ? s.items[key]: null;
 }
 
@@ -39,10 +37,14 @@ function findItem(items: StoreItem[] | null, hash: string) {
 function findStoreItem(path: StorePath, store: Store | null) {
     return path.reduce(
         (s, p) => findItem(findItems(s, p.collectionName), p.hash),
-        store as StoreItem | null);
+        store);
 }
 
-export function getStoreData(store: Store | null, path: StorePath): HashMap | null {
+export function getStoreItem(store: Store | null, path: StorePath) {
+    return findStoreItem(path, store);
+}
+
+export function getStoreData(store: Store | null, path: StorePath) {
     const item = findStoreItem(path, store);
     return item ? item.data : null;
 }

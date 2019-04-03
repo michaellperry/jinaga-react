@@ -2,7 +2,7 @@ import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
 import { Mapping } from "../specifications/mapping";
-import { addStoreItem, combineStorePath, getStoreData, getStoreItems, removeStoreItem, setStoreOrderBy, Store, StorePath } from "../store/store";
+import { addStoreItem, combineStorePath, getStoreData, getStoreItems, removeStoreItem, setStoreOrderBy, Store, StorePath, getStoreItem } from "../store/store";
 import { BeginWatch, FieldDeclaration, Mutator, WatchContext } from "./declaration";
 
 export interface OrderByDeclaration<M, T> {
@@ -44,8 +44,11 @@ export function collection<M, U, VM, P, T>(
         }
 
         render() {
-            const data = getStoreData(this.context, this.props.path) as VM;
-            return <PresentationComponent {...{...data, ...this.props.passThrough}} />;
+            const storeItem = getStoreItem(this.context, this.props.path);
+            const vm = storeItem ? mapping.getMappingValue(storeItem) : null;
+            return vm
+                ? <PresentationComponent {...{...vm, ...this.props.passThrough}} />
+                : <></>;
         }
     }
 
@@ -123,6 +126,7 @@ export function collection<M, U, VM, P, T>(
             path={path}
             collectionName={fieldName}
             passThrough={props} />,
+        getFieldValue: (store, fieldName) => store.data[fieldName],
         createFieldWatches
     }
 }

@@ -37,6 +37,7 @@ export function property<M, U, T>(
 
     return {
         initialFieldState: () => initialValue,
+        getFieldValue: (store, fieldName) => store.data[fieldName],
         createFieldWatches
     };
 }

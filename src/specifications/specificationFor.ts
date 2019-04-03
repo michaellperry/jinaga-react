@@ -30,13 +30,22 @@ export function specificationFor<M, VMD extends ViewModelDeclaration<M>>(
                 .reduce((a,b) => a.concat(b));
         }
 
+        function getMappingValue(store: Store): VM {
+            return Object.keys(declaration)
+                .reduce((vm,fieldName) => ({
+                    ...vm,
+                    [fieldName]: declaration[fieldName].getFieldValue(store, fieldName)
+                }), {} as VM);
+        }
+
         return {
             initialMappingState: (m, path) => Object.keys(declaration)
                 .reduce((vm,fieldName) => ({
                     ...vm,
                     [fieldName]: declaration[fieldName].initialFieldState(m, path, fieldName)
                 }), {} as VM),
-            createMappingWatches: createMappingWatches,
+            getMappingValue,
+            createMappingWatches,
             PresentationComponent
         };
     }

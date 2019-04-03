@@ -13,6 +13,7 @@ export function projection<M, VM extends {}, P>(
             const projectionProps = Object.assign({}, vm, props);
             return <PresentationComponent {...projectionProps} />;
         },
+        getFieldValue: (store, fieldName) => store.data[fieldName],
         createFieldWatches: (beginWatch, mutator) => mapping.createMappingWatches(beginWatch, mutator)
     };
 }

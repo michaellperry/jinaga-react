@@ -96,6 +96,7 @@ export function mutable<M, U, T>(
             candidates: {},
             value: resolver([])
         }),
+        getFieldValue: (store, fieldName) => store.data[fieldName],
         createFieldWatches
     }
 }

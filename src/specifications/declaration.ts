@@ -21,6 +21,10 @@ export type FieldDeclaration<M, T> = {
         mutator: Mutator<Store>,
         fieldName: string
     ): Watch<M, WatchContext>[];
+    getFieldValue(
+        store: Store,
+        fieldName: string
+    ): T;
 }
 
 export type ViewModelDeclaration<M> = {
