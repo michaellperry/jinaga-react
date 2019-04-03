@@ -17,6 +17,10 @@
     "react",
     "viewmodel"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michaellperry/jinaga-react"
+  },
   "author": "Michael L Perry",
   "license": "MIT",
   "devDependencies": {
