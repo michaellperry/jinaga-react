@@ -1,12 +1,6 @@
 import { Store } from "../store/store";
-import { BeginWatch, FieldDeclaration, Mutator, ViewModelDeclaration } from "./declaration";
+import { BeginWatch, Mutator, ViewModel, ViewModelDeclaration } from "./declaration";
 import { Mapping } from "./mapping";
-
-type FieldType<M, D> = D extends FieldDeclaration<M, infer T> ? T : never;
-
-type ViewModel<M, D> = {
-    [F in keyof D]: FieldType<M, D[F]>
-}
 
 interface Type<T> extends Function {
     new (...args: any[]): T;

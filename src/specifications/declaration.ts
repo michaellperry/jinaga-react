@@ -26,3 +26,9 @@ export type FieldDeclaration<M, T> = {
 export type ViewModelDeclaration<M> = {
     [fieldName: string]: FieldDeclaration<M, any>;
 }
+
+export type FieldType<M, D> = D extends FieldDeclaration<M, infer T> ? T : never;
+
+export type ViewModel<M, D> = {
+    [F in keyof D]: FieldType<M, D[F]>
+}

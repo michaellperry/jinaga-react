@@ -78,7 +78,7 @@ export function collection<M, U, VM, P, T>(
         }
     }
     
-    function createWatches(
+    function createFieldWatches(
         beginWatch: BeginWatch<M>,
         mutator: Mutator<Store>,
         fieldName: string
@@ -123,7 +123,7 @@ export function collection<M, U, VM, P, T>(
             path={path}
             collectionName={fieldName}
             passThrough={props} />,
-        createFieldWatches: createWatches
+        createFieldWatches
     }
 }
 
