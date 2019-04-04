@@ -1,12 +1,6 @@
 import { Store } from "../store/store";
-import { BeginWatch, FieldDeclaration, Mutator, ViewModelDeclaration } from "./declaration";
+import { BeginWatch, Mutator, ViewModel, ViewModelDeclaration } from "./declaration";
 import { Mapping } from "./mapping";
-
-type FieldType<M, D> = D extends FieldDeclaration<M, infer T> ? T : never;
-
-type ViewModel<M, D> = {
-    [F in keyof D]: FieldType<M, D[F]>
-}
 
 interface Type<T> extends Function {
     new (...args: any[]): T;
@@ -36,13 +30,27 @@ export function specificationFor<M, VMD extends ViewModelDeclaration<M>>(
                 .reduce((a,b) => a.concat(b));
         }
 
+        function getMappingValue(store: Store): VM {
+            return Object.keys(declaration)
+                .reduce((vm,fieldName) => ({
+                    ...vm,
+                    [fieldName]: declaration[fieldName].getFieldValue(store, fieldName)
+                }), {} as VM);
+        }
+
         return {
             initialMappingState: (m, path) => Object.keys(declaration)
                 .reduce((vm,fieldName) => ({
                     ...vm,
                     [fieldName]: declaration[fieldName].initialFieldState(m, path, fieldName)
                 }), {} as VM),
-            createMappingWatches: createMappingWatches,
+            initialMappingItems: (m, path) => Object.keys(declaration)
+                .reduce((vm,fieldName) => ({
+                    ...vm,
+                    [fieldName]: declaration[fieldName].initialFieldItems(m, path, fieldName)
+                }), {}),
+            getMappingValue,
+            createMappingWatches,
             PresentationComponent
         };
     }

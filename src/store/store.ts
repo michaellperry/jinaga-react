@@ -4,11 +4,9 @@ type HashMap = {
     [key: string]: any
 }
 
-interface StoreItem {
+export type StoreItem = Store & {
     hash: string;
     orderBy: any;
-    data: HashMap;
-    items: { [collectionName: string]: StoreItem[] };
 }
 
 export interface Store {
@@ -16,10 +14,10 @@ export interface Store {
     items: { [collectionName: string]: StoreItem[] };
 }
 
-export function createStore(data: HashMap): Store {
+export function createStore(data: HashMap, items: { [collectionName: string]: StoreItem[] }): Store {
     return {
         data,
-        items: {}
+        items
     };
 }
 
@@ -28,7 +26,7 @@ export type StorePath = {
     hash: string;
 }[];
 
-function findItems(s: StoreItem | null, key: string) {
+function findItems(s: Store | null, key: string) {
     return s ? s.items[key]: null;
 }
 
@@ -39,10 +37,14 @@ function findItem(items: StoreItem[] | null, hash: string) {
 function findStoreItem(path: StorePath, store: Store | null) {
     return path.reduce(
         (s, p) => findItem(findItems(s, p.collectionName), p.hash),
-        store as StoreItem | null);
+        store);
 }
 
-export function getStoreData(store: Store | null, path: StorePath): HashMap | null {
+export function getStoreItem(store: Store | null, path: StorePath) {
+    return findStoreItem(path, store);
+}
+
+export function getStoreData(store: Store | null, path: StorePath) {
     const item = findStoreItem(path, store);
     return item ? item.data : null;
 }
@@ -109,7 +111,7 @@ export function setFieldValue<T>(fieldName: string, transformer: Transformer<T>)
     });
 }
 
-export function addStoreItem(path: StorePath, collectionName: string, hash: string, data: HashMap, orderBy: any, comparer: ((a: any, b: any) => number) | null) {
+export function addStoreItem(path: StorePath, collectionName: string, item: StoreItem, comparer: ((a: any, b: any) => number) | null) {
     function sort(items: StoreItem[]) {
         return comparer ? items.sort((a,b) => comparer(a.orderBy, b.orderBy)) : items;
     }
@@ -121,12 +123,7 @@ export function addStoreItem(path: StorePath, collectionName: string, hash: stri
                 ...storeItem.items,
                 [collectionName]: sort([
                     ...items,
-                    {
-                        hash,
-                        data,
-                        orderBy,
-                        items: {}
-                    }
+                    item
                 ])
             }
         };

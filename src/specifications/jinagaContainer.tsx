@@ -47,17 +47,14 @@ export function jinagaContainer<M, VM, P>(
             const passThrough = rest as P;
             const store = this.state.store;
 
-            if (store) {
-                const data = store.data as VM;
-                return (
+            const vm = store ? mapping.getMappingValue(store) : null;
+            return vm
+                ? (
                     <JinagaContext.Provider value={this.state.store}>
-                        <PresentationComponent {...{...data, ...passThrough}} />
+                        <PresentationComponent {...{...vm, ...passThrough}} />
                     </JinagaContext.Provider>
-                );
-            }
-            else {
-                return <></>;
-            }
+                )
+                : <></>;
         }
 
         private async startWatches() {
@@ -67,7 +64,10 @@ export function jinagaContainer<M, VM, P>(
             }
 
             this.setState({ store: null });
-            let localStore: Store | null = createStore(mapping.initialMappingState(model, []));
+            let localStore: Store | null = createStore(
+                mapping.initialMappingState(model, []),
+                mapping.initialMappingItems(model, [])
+            );
 
             function beginWatch<U>(
                 preposition: Preposition<M, U>,

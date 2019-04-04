@@ -10,6 +10,8 @@ import { FieldDeclaration } from "./declaration";
 export function field<M, T>(selector: (m: M) => T): FieldDeclaration<M, T> {
     return {
         initialFieldState: m => selector(m),
+        initialFieldItems: () => undefined,
+        getFieldValue: (store, fieldName) => store.data[fieldName],
         createFieldWatches: () => []
     };
 }
