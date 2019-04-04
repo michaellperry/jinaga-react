@@ -64,7 +64,10 @@ export function jinagaContainer<M, VM, P>(
             }
 
             this.setState({ store: null });
-            let localStore: Store | null = createStore(mapping.initialMappingState(model, []));
+            let localStore: Store | null = createStore(
+                mapping.initialMappingState(model, []),
+                mapping.initialMappingItems(model, [])
+            );
 
             function beginWatch<U>(
                 preposition: Preposition<M, U>,

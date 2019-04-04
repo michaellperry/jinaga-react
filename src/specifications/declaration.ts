@@ -1,5 +1,5 @@
 import { Preposition, Watch } from "jinaga";
-import { Store, StorePath } from "../store/store";
+import { Store, StorePath, StoreItem } from "../store/store";
 
 export type Transformer<T> = (oldValue: T) => T;
 
@@ -16,6 +16,7 @@ export type BeginWatch<M> = <U>(
 
 export type FieldDeclaration<M, T> = {
     initialFieldState(m: M, path: StorePath, fieldName: string): T;
+    initialFieldItems(m: M, path: StorePath, fieldName: string): StoreItem[] | undefined;
     createFieldWatches(
         beginWatch: BeginWatch<M>,
         mutator: Mutator<Store>,

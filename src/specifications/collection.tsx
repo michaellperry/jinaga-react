@@ -2,7 +2,7 @@ import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
 import { Mapping } from "../specifications/mapping";
-import { addStoreItem, combineStorePath, getStoreData, getStoreItems, removeStoreItem, setStoreOrderBy, Store, StorePath, getStoreItem } from "../store/store";
+import { addStoreItem, combineStorePath, getStoreData, getStoreItems, removeStoreItem, setStoreOrderBy, Store, StorePath, getStoreItem, StoreItem } from "../store/store";
 import { BeginWatch, FieldDeclaration, Mutator, WatchContext } from "./declaration";
 
 export interface OrderByDeclaration<M, T> {
@@ -89,9 +89,16 @@ export function collection<M, U, VM, P, T>(
         function resultAdded(path: StorePath, child: U): WatchContext {
             const hash = Jinaga.hash(child);
             const childPath = combineStorePath(path, fieldName, hash);
-            const initialState = mapping.initialMappingState(child, childPath);
+            const data = mapping.initialMappingState(child, childPath);
+            const items = mapping.initialMappingItems(child, childPath);
             const initialOrderByState = orderBy ? orderBy.initialOrderByState(child) : null;
-            mutator(addStoreItem(path, fieldName, hash, initialState, initialOrderByState, orderBy ? orderBy.comparer : null));
+            const item: StoreItem = {
+                hash,
+                data,
+                orderBy: initialOrderByState,
+                items
+            }
+            mutator(addStoreItem(path, fieldName, item, orderBy ? orderBy.comparer : null));
             return {
                 resultRemoved: () => {
                     mutator(removeStoreItem(path, fieldName, hash));
@@ -126,6 +133,7 @@ export function collection<M, U, VM, P, T>(
             path={path}
             collectionName={fieldName}
             passThrough={props} />,
+        initialFieldItems: () => [],
         getFieldValue: (store, fieldName) => store.data[fieldName],
         createFieldWatches
     }

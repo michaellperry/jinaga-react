@@ -44,6 +44,11 @@ export function specificationFor<M, VMD extends ViewModelDeclaration<M>>(
                     ...vm,
                     [fieldName]: declaration[fieldName].initialFieldState(m, path, fieldName)
                 }), {} as VM),
+            initialMappingItems: (m, path) => Object.keys(declaration)
+                .reduce((vm,fieldName) => ({
+                    ...vm,
+                    [fieldName]: declaration[fieldName].initialFieldItems(m, path, fieldName)
+                }), {}),
             getMappingValue,
             createMappingWatches,
             PresentationComponent

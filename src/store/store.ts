@@ -4,7 +4,7 @@ type HashMap = {
     [key: string]: any
 }
 
-type StoreItem = Store & {
+export type StoreItem = Store & {
     hash: string;
     orderBy: any;
 }
@@ -14,10 +14,10 @@ export interface Store {
     items: { [collectionName: string]: StoreItem[] };
 }
 
-export function createStore(data: HashMap): Store {
+export function createStore(data: HashMap, items: { [collectionName: string]: StoreItem[] }): Store {
     return {
         data,
-        items: {}
+        items
     };
 }
 
@@ -111,7 +111,7 @@ export function setFieldValue<T>(fieldName: string, transformer: Transformer<T>)
     });
 }
 
-export function addStoreItem(path: StorePath, collectionName: string, hash: string, data: HashMap, orderBy: any, comparer: ((a: any, b: any) => number) | null) {
+export function addStoreItem(path: StorePath, collectionName: string, item: StoreItem, comparer: ((a: any, b: any) => number) | null) {
     function sort(items: StoreItem[]) {
         return comparer ? items.sort((a,b) => comparer(a.orderBy, b.orderBy)) : items;
     }
@@ -123,12 +123,7 @@ export function addStoreItem(path: StorePath, collectionName: string, hash: stri
                 ...storeItem.items,
                 [collectionName]: sort([
                     ...items,
-                    {
-                        hash,
-                        data,
-                        orderBy,
-                        items: {}
-                    }
+                    item
                 ])
             }
         };
