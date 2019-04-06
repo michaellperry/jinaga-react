@@ -10,6 +10,18 @@ type Specification<M, VMD extends ViewModelDeclaration<M>> =
     <P>(PresentationComponent: React.ComponentType<ViewModel<M, VMD> & P>) =>
         Mapping<M, ViewModel<M, VMD>, P>;
 
+/**
+ * Start here.
+ * Create a specification for a certain type of fact.
+ * The specification determines what props are passed to a component in order to render the fact.
+ * 
+ * Declare the props as a JavaScript object.
+ * Each field of this declaration object has the same name as the resulting prop.
+ * The value of the field determines how the 
+ * 
+ * @param modelConstructor Constructor for the root fact.
+ * @param declaration A declaration of the props to pass to the root component.
+ */
 export function specificationFor<M, VMD extends ViewModelDeclaration<M>>(
     modelConstructor: Type<M>,
     declaration: VMD

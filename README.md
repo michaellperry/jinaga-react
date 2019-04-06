@@ -6,238 +6,121 @@ Binding helpers for managing [React](https://reactjs.org) component state based 
 npm install --save jinaga react react-dom jinaga-react
 ```
 
-Use the `useJinaga` hook in a function component:
+Full documentation can be found at [https://jinaga.com/documents/jinaga-react/](https://jinaga.com/documents/jinaga-react/).
+
+# Composition
+
+User interfaces in React are composed from components.
+The Jinaga helper library for React provides ways to connect components to Jinaga template functions to create dynamic user interfaces.
+It breaks the problem into three layers:
+
+* Specifications
+* Mappings
+* Containers
+
+Mappings can further be used in collections to build structures of any depth.
+
+## Specifications
+
+Start by specifying a set of properties to be injected into a React component.
 
 ```javascript
-export const ChannelView = ({ channel }) => {
-    const state = useJinaga(j, channel, [
-        collection('messages', j.for(Message.inChannel), m => m.key, [
-            field('key', m => j.hash(m)),
-            field('text', m => m.text),
-            property('sender', j.for(Message.sender).then(UserName.forUser), n => n.value)
-        ])
-    ]);
-
-    return (
-        <ul>
-            { state.messages.map(message => <li key={message.key}>
-                <p>{ message.text }</p>
-                <p>{ message.sender }</p>
-            </li>) }
-        </ul>
-    );
-};
+const messageSpec = specificationFor(Message, {
+    text: field(m => m.text),
+    sender: property(j.for(Message.sender).then(UserName.forUser), n => n.value, "<sender>")
+});
 ```
 
-Or use the `StateManager` class in a class component:
+This specification defines two props.
+The `text` prop will be given the value of the text field of the `Message` fact.
+The `sender` prop will use the result of the template functions `Message.sender` and `UserName.forUser`.
+This sets up a query that will take the sender of the message, and then watch for their user name.
+
+By default, the property will have the value `"<sender>"`, which is just there so that something gets displayed.
+That value will be used only if the sender has no name.
+In other words, if the `UserName.forUser` template matches no facts.
+
+## Mappings
+
+Once you have a specification, you can map it to a React component.
+Do this by calling the specification as a function and passing in the React render function.
 
 ```javascript
-export class ChannelView extends React.Component {
+const messageMapping = messageSpec(({ text, sender }) => (
+    <>
+        <p className="message-text">{text}</p>
+        <p className="message-sender">{sender}</p>
+    </>
+));
+```
+
+Or if you prefer a class component rather than a function component, pass the constructor.
+
+```javascript
+class MessagePresenter extends React.Component {
     constructor(props) {
         super(props);
-        this.stateManager = StateManager.forComponent(this, j, props.channel, [
-            collection('messages', j.for(Message.inChannel), m => m.key, [
-                field('key', m => j.hash(m)),
-                field('text', m => m.text),
-                property('sender', j.for(Message.sender).then(UserName.forUser), n => n.value)
-            ])
-        ]);
-        this.state = this.stateManager.initialState();
-    }
-
-    componentDidMount() {
-        this.stateManager.start();
-    }
-
-    componentWillUnmount() {
-        this.stateManager.stop();
     }
 
     render() {
         return (
-            <ul>
-                { this.state.messages.map(message => <li key={message.key}>
-                    <p>{ message.text }</p>
-                    <p>{ message.sender }</p>
-                </li>) }
-            </ul>
-        );    
+            <>
+                <p className="message-text">{this.props.text}</p>
+                <p className="message-sender">{this.props.sender}</p>
+            </>
+        );
     }
 }
+
+const messageMapping = messageSpec(MessagePresenter);
 ```
 
-## Field Specification Functions
+## Containers
 
-Declare the fields of your component state using the field specification functions.
-The first parameter is the name of the field in the component state.
-The rest of the parameters extract data from a fact according to the kind of field you are specifying.
-
-There are five specification functions provided out of the box:
-
-* field
-* projection
-* collection
-* property
-* mutable
-
-### Field
-
-The simplest field specification function provides an immutable value based on the fact.
-Use it to copy a field directly from the fact into state.
+Now that you've mapped the specified properties into a component, you can wrap that component in a container.
+Define a container component with the `jiangaContainer` function.
+Pass in the Jinaga instance (typically called `j`) and the mapping.
 
 ```javascript
-field('text', m => m.text)
+const MessageView = jinagaContainer(j, messageMapping);
 ```
 
-Or to compute the hash to use as a key.
+You can now use this container component as a regular React component.
+It has a prop called `fact` that takes the starting point of the graph.
 
 ```javascript
-field('key', m => j.hash(m))
+ReactDOM.render(
+    <MessageView fact={new Message("Twas Brillig", user, new Channel("General"), new Date())} />,
+    document.getElementById("message-host"));
 ```
 
-Or to store the fact itself.
+## Collections
+
+Of course, it doesn't make much sense to have a page that displays just one message.
+You want a list of messages in a channel.
+You can compose mappings into other specifications using the `collection` function.
 
 ```javascript
-field('fact', m => m)
-```
-
-### Projection
-
-A projection produces a single object.
-This is useful for organizing component state, especially if you will be breaking down the rendering into several components.
-Provide specifications for all of the fields of the child object.
-
-```javascript
-projection('user', [
-    property('name', j.for(nameOfUser), n => n.value, '')
-])
-```
-
-Now you have an object that has a subset of the component state, so you can render it separately.
-
-```javascript
-return (
-    <UserView user={ state.user } />
-);
-```
-
-### Collection
-
-A collection field produces an array of child objects.
-Each object must have a field that uniquely identifies it.
-If you already have such a field within the model, feel free to use it.
-But a good alternative is to use the fact's hash.
-Provide specifications for all fields of the child objects, including the key.
-
-```javascript
-collection('messages', j.for(messagesInChannel), m => m.key, [
-    field('key', m => j.hash(m))
-])
-```
-
-### Property
-
-A Jinaga property is a pattern for simulating changes to a value using immutable facts.
-The `property` function translates this pattern into a state field that can change.
-
-A property fact has a parent entity, a value, and an array of prior facts.
-
-```javascript
-const name1 = await j.fact({
-    type: 'User.Name',
-    user: { type: 'User', publicKey: '...' },
-    value: 'Michael',
-    prior: []
+const channelSpec = specificationFor(Channel, {
+    identifier: field(c => c.identifier),
+    Messages: collection(j.for(Message.inChannel), messageMapping, descending(m => m.sentAt))
 });
 ```
 
-To change the value of a property, create a new fact that refers to the previous value.
+I gave the `Messages` prop a capitalized name.
+Want to know why?
+Because that lets me use it as a component!
 
 ```javascript
-const name2 = await j.fact({
-    type: 'User.Name',
-    user: { type: 'User', publicKey: '...' },
-    value: 'Mike',
-    prior: [ name1 ]
-});
+const channelMapping = channelSpec(( { identifier, Messages }) => (
+    <>
+        <h1>{identifier}</h1>
+        <Messages />
+    </>
+));
 ```
 
-Declare a template function that matches only the facts that have not been superseded.
+The collection component will render all of the results of the template function using the child mapping, and in the specified order.
 
-```javascript
-function nameOfUser(u) {
-    return j.match({
-        type: 'User.Name',
-        user: u
-    }).suchThat(nameIsCurrent);
-}
-
-function nameIsCurrent(n) {
-    return j.notExists({
-        type: 'User.Name',
-        prior: [n]
-    });
-}
-```
-
-The `property` specification function will assign the value of the most recent fact to a state field.
-
-```javascript
-property('name', j.for(nameOfUser), n => n.value)
-```
-
-### Mutable
-
-If you want the user to be able to edit the property, you will need to capture more information than the current value.
-Use the `mutable` specification function to gather that information.
-
-```javascript
-mutable('name', j.for(nameOfUser), userNames => userNames
-    .map(n => n.value)
-    .join(', '))
-```
-
-Rather than selecting just a single value, the `mutable` specification function takes a conflict resolver.
-This function receives an array of facts, not just one.
-If that array is empty, then the property has not yet been initialized, and the resolver should return the default value.
-If the array has only one fact, then there is no conflict, and the resolver returns the value from that fact.
-But, if the array contains more than one fact, then a conflict has occurred.
-The resolver determines the correct value given all of those candidates.
-
-The resolver will typically be a map-reduce style function.
-The `join` function used above is perfect for strings, because it gives an empty string by default, the single value if there is no conflict, and the list of candidate values if a conflict has occurred.
-
-Another strategy is last write wins.
-Since the order of the candidates is not guaranteed, this strategy relies upon a date being added to the fact.
-Dates have been converted to strings, because facts are JSON objects.
-
-```javascript
-mutable('name', j.for(nameOfUser), userNames => userNames
-    .reduce((a,b) => a.createdAt > b.createdAt ? a : b, { createdAt: '', value: '' } )
-    .value)
-```
-
-The state field has a `value` field that contains the resolved value.
-It also has some additional bookkeeping fields that keep track of candidates.
-
-When the user begins editing the mutable property, take a snapshot of the state field.
-Present them with the value, and allow them to make their changes.
-When they save, use the `prior` function to turn those candidates into an array.
-Then create a new fact if the value has changed or a conflict has been resolved.
-
-```javascript
-const name = state.name;
-let value = name.value;
-
-// Edit the value
-
-const priorNames = prior(name);
-if (value !== name.value || priorNames.length !== 1) {
-    await j.fact({
-        type: 'User.Name',
-        user,
-        value,
-        prior: priorNames
-    });
-}
-```
+There are loads of ways to compose specifications and mappings.
+Check out all of the field specification functions to explore all of the options.

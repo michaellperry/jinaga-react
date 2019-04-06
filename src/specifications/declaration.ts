@@ -37,3 +37,12 @@ export type FieldType<M, D> = D extends FieldDeclaration<M, infer T> ? T : never
 export type ViewModel<M, D> = {
     [F in keyof D]: FieldType<M, D[F]>
 }
+
+export interface OrderByDeclaration<M, T> {
+    initialOrderByState(m: M): T;
+    createOrderByWatches(
+        beginWatch: BeginWatch<M>,
+        mutator: Mutator<Store>
+    ): Watch<M, WatchContext>[];
+    comparer(a: T, b: T): number;
+}

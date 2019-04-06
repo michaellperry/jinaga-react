@@ -1,10 +1,20 @@
 import { Jinaga, Preposition, Watch } from "jinaga";
 import { addStoreItem, combineStorePath, removeStoreItem, Store, StoreItem, StorePath } from "../store/store";
-import { BeginWatch, FieldDeclaration, Mutator, ViewModel, ViewModelDeclaration, WatchContext } from "./declaration";
+import { BeginWatch, FieldDeclaration, Mutator, OrderByDeclaration, ViewModel, ViewModelDeclaration, WatchContext } from "./declaration";
 
-export function array<M, U, VMD extends ViewModelDeclaration<U>>(
+/**
+ * Set up an array of objects.
+ * The associated property is an array of objects that represent the results of a given Jinaga preposition.
+ * The fields of each of the objects are determined by the nested declaration.
+ * 
+ * @param preposition A Jinaga preposition using `j.for`
+ * @param declaration A declaration of the fields of each result object
+ * @param orderBy (Optional) A comparison function used to sort the array
+ */
+export function array<M, U, VMD extends ViewModelDeclaration<U>, T>(
     preposition: Preposition<M, U>,
-    declaration: VMD
+    declaration: VMD,
+    orderBy?: OrderByDeclaration<ViewModel<U, VMD>, T>
 ): FieldDeclaration<M, ViewModel<U, VMD>[]>{
     type VM = ViewModel<U, VMD>;
 
@@ -91,7 +101,12 @@ export function array<M, U, VMD extends ViewModelDeclaration<U>>(
             .reduce((vm,childFieldName) => Object.assign({}, vm, {
                 [childFieldName]: declaration[childFieldName].getFieldValue(item, childFieldName)
             }), {} as VM));
-        return value;
+        return orderBy
+            ? value.sort((a: VM,b: VM) => orderBy.comparer(
+                orderBy.initialOrderByState(a),
+                orderBy.initialOrderByState(b)
+            ))
+            : value;
     }
 
     return {

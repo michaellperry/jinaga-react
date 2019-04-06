@@ -2,17 +2,8 @@ import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
 import { Mapping } from "../specifications/mapping";
-import { addStoreItem, combineStorePath, getStoreData, getStoreItems, removeStoreItem, setStoreOrderBy, Store, StorePath, getStoreItem, StoreItem } from "../store/store";
-import { BeginWatch, FieldDeclaration, Mutator, WatchContext } from "./declaration";
-
-export interface OrderByDeclaration<M, T> {
-    initialOrderByState(m: M): T;
-    createOrderByWatches(
-        beginWatch: BeginWatch<M>,
-        mutator: Mutator<Store>
-    ): Watch<M, WatchContext>[];
-    comparer(a: T, b: T): number;
-}
+import { addStoreItem, combineStorePath, getStoreItem, getStoreItems, removeStoreItem, setStoreOrderBy, Store, StoreItem, StorePath } from "../store/store";
+import { BeginWatch, FieldDeclaration, Mutator, OrderByDeclaration, WatchContext } from "./declaration";
 
 /**
  * Set up a collection of child components.

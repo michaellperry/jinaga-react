@@ -5,6 +5,19 @@ import { StorePath, getStoreItem, combineStorePath } from "../store/store";
 import { JinagaContext } from "../components/JinagaContext";
 import { Preposition, Watch } from "jinaga";
 
+/**
+ * Set up a child component.
+ * The child inherits the context from the current component.
+ * It starts from the same fact.
+ * 
+ * The associated property is a render function for the child.
+ * Pass any additional props that the child component requires, not defined by the mapping specification, to this function.
+ * 
+ * It's best to give this property a capitalized name.
+ * That allows you to render the child naturally within the parent component.
+ * 
+ * @param mapping A specification mapping for the client component.
+ */
 export function projection<M, VM extends {}, P>(
     mapping: Mapping<M, VM, P>
 ): FieldDeclaration<M, (props: P) => JSX.Element> {
