@@ -1,6 +1,6 @@
 {
   "name": "jinaga-react",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "React binding helpers for Jinaga",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
