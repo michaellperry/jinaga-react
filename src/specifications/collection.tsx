@@ -187,7 +187,7 @@ export function ascending<M, U, T>(
     selectorOpt?: (m: U) => T,
     initialValueOpt?: T
 ) {
-    if (prepositionOrSelector instanceof Preposition) {
+    if (typeof(prepositionOrSelector) !== 'function') {
         if (selectorOpt === undefined || initialValueOpt === undefined) {
             throw new Error("Selector and initial value are required to order by a property");
         }
