@@ -1,9 +1,9 @@
+import { cleanup, render } from "@testing-library/react";
 import { Jinaga, JinagaBrowser } from "jinaga";
 import * as React from "react";
-import { cleanup, render } from "react-testing-library";
 import { jinagaContainer } from "../src";
 import { applicationMapping } from "./components/Application";
-import { Item, Name, Root, ItemDeleted, SubItem, SubSubItem } from "./model";
+import { Item, ItemDeleted, Name, Root, SubItem, SubSubItem } from "./model";
 
 describe("Specification For", () => {
     var j: Jinaga;
