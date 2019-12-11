@@ -19,7 +19,7 @@ export function array<M, U, VMD extends ViewModelDeclaration<U>, T>(
     type VM = ViewModel<U, VMD>;
 
     function createMappingWatches(
-        beginWatch: BeginWatch<M>,
+        beginWatch: BeginWatch<U>,
         mutator: Mutator<Store>
     ) {
         return Object.keys(declaration)

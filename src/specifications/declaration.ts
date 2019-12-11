@@ -21,7 +21,7 @@ export type FieldDeclaration<M, T> = {
         beginWatch: BeginWatch<M>,
         mutator: Mutator<Store>,
         fieldName: string
-    ): Watch<M, WatchContext>[];
+    ): Watch<any, WatchContext>[];
     getFieldValue(
         store: Store,
         fieldName: string
@@ -43,6 +43,6 @@ export interface OrderByDeclaration<M, T> {
     createOrderByWatches(
         beginWatch: BeginWatch<M>,
         mutator: Mutator<Store>
-    ): Watch<M, WatchContext>[];
+    ): Watch<any, WatchContext>[];
     comparer(a: T, b: T): number;
 }
