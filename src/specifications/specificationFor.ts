@@ -1,14 +1,10 @@
-import { Store } from "../store/store";
-import { BeginWatch, Mutator, ViewModel, ViewModelDeclaration } from "./declaration";
-import { Mapping } from "./mapping";
+import { Store, StorePath } from '../store/store';
+import { BeginWatch, Mutator, ViewModel, ViewModelDeclaration } from './declaration';
+import { Mapping, Specification } from './mapping';
 
 interface Type<T> extends Function {
     new (...args: any[]): T;
 }
-
-type Specification<M, VMD extends ViewModelDeclaration<M>> =
-    <P>(PresentationComponent: React.ComponentType<ViewModel<M, VMD> & P>) =>
-        Mapping<M, ViewModel<M, VMD>, P>;
 
 /**
  * Start here.
@@ -25,45 +21,56 @@ type Specification<M, VMD extends ViewModelDeclaration<M>> =
 export function specificationFor<M, VMD extends ViewModelDeclaration<M>>(
     modelConstructor: Type<M>,
     declaration: VMD
-): Specification<M, VMD> {
+): Specification<M, ViewModel<M, VMD>> {
     type VM = ViewModel<M, VMD>;
 
-    return PresentationComponent => {
-        function createMappingWatches(
-            beginWatch: BeginWatch<M>,
-            mutator: Mutator<Store>
-        ) {
-            return Object.keys(declaration)
-                .map(fieldName => declaration[fieldName].createFieldWatches(
-                    beginWatch,
-                    mutator,
-                    fieldName
-                ))
-                .reduce((a,b) => a.concat(b));
-        }
+    function createMappingWatches(
+        beginWatch: BeginWatch<M>,
+        mutator: Mutator<Store>
+    ) {
+        return Object.keys(declaration)
+            .map(fieldName => declaration[fieldName].createFieldWatches(
+                beginWatch,
+                mutator,
+                fieldName
+            ))
+            .reduce((a,b) => a.concat(b));
+    }
 
-        function getMappingValue(store: Store): VM {
-            return Object.keys(declaration)
-                .reduce((vm,fieldName) => ({
-                    ...vm,
-                    [fieldName]: declaration[fieldName].getFieldValue(store, fieldName)
-                }), {} as VM);
-        }
+    function getMappingValue(store: Store): VM {
+        return Object.keys(declaration)
+            .reduce((vm,fieldName) => ({
+                ...vm,
+                [fieldName]: declaration[fieldName].getFieldValue(store, fieldName)
+            }), {} as VM);
+    }
 
+    const initialMappingState = (m: M, path: StorePath) => Object.keys(declaration)
+        .reduce((vm,fieldName) => ({
+            ...vm,
+            [fieldName]: declaration[fieldName].initialFieldState(m, path, fieldName)
+        }), {} as VM);
+
+    const initialMappingItems = (m: M, path: StorePath) => Object.keys(declaration)
+        .reduce((vm,fieldName) => ({
+            ...vm,
+            [fieldName]: declaration[fieldName].initialFieldItems(m, path, fieldName)
+        }), {});
+
+    function mapProps<P>(PresentationComponent: React.ComponentType<VM & P>) : Mapping<M, VM, P> {
         return {
-            initialMappingState: (m, path) => Object.keys(declaration)
-                .reduce((vm,fieldName) => ({
-                    ...vm,
-                    [fieldName]: declaration[fieldName].initialFieldState(m, path, fieldName)
-                }), {} as VM),
-            initialMappingItems: (m, path) => Object.keys(declaration)
-                .reduce((vm,fieldName) => ({
-                    ...vm,
-                    [fieldName]: declaration[fieldName].initialFieldItems(m, path, fieldName)
-                }), {}),
+            initialMappingState,
+            initialMappingItems,
             getMappingValue,
             createMappingWatches,
             PresentationComponent
         };
     }
+
+    let specification : Specification<M, VM> = <any>mapProps.bind(null);
+    specification.initialMappingState = initialMappingState;
+    specification.initialMappingItems = initialMappingItems;
+    specification.getMappingValue = getMappingValue;
+    specification.createMappingWatches = createMappingWatches;
+    return specification;
 }
