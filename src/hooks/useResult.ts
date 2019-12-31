@@ -5,6 +5,18 @@ import { Transformer, WatchContext } from '../specifications/declaration';
 import { Specification } from '../specifications/mapping';
 import { createStore, Store, StorePath } from '../store/store';
 
+/**
+ * Load the result of a specification within a function component.
+ * This is kept as component state by means of the useState hook.
+ * 
+ * The result will be null until the result is fully loaded.
+ * Be sure to check for null and render a loading state.
+ * Thereafter, the result will update as new facts are added.
+ * 
+ * @param j The Jinaga object.
+ * @param fact The starting point for all queries in the specification.
+ * @param specification Specifies the fields that will be generated from Jinaga queries. Create the specification with {@link specificationFor}.
+ */
 export function useResult<M, VM>(j: Jinaga, fact: M | null, specification: Specification<M, VM>): VM | null {
   const [ store, setStore ] = React.useState<Store | null>(null);
   const [ loaded, setLoaded ] = React.useState<boolean>(false);

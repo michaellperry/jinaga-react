@@ -9,11 +9,13 @@ interface Type<T> extends Function {
 /**
  * Start here.
  * Create a specification for a certain type of fact.
- * The specification determines what props are passed to a component in order to render the fact.
+ * The specification declares a set of fields based on Jinaga queries.
  * 
- * Declare the props as a JavaScript object.
- * Each field of this declaration object has the same name as the resulting prop.
- * The value of the field determines how the 
+ * Declare the fields as a JavaScript object.
+ * Each field of this declaration object has the same name as the resulting field.
+ * 
+ * To pass these fields as props into a component, use {@link mapProps}.
+ * To get these fields as state in a function component, use {@link useResult}.
  * 
  * @param modelConstructor Constructor for the root fact.
  * @param declaration A declaration of the props to pass to the root component.
