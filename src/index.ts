@@ -9,4 +9,5 @@ export { projection } from "./specifications/projection";
 export { property } from "./specifications/property";
 export { specificationFor } from "./specifications/specificationFor";
 export { addStoreItem, combineStorePath, removeStoreItem, Store, StorePath } from "./store/store";
-export { mapProps } from "./specifications/mapProps";
+export { mapProps } from "./components/mapProps";
+export { useResult } from "./hooks/useResult";

@@ -24,3 +24,5 @@ export type Specification<M, VM> = SpecificationBase<M, VM> & {
 export type Mapping<M, VM, P> = SpecificationBase<M, VM> & {
     PresentationComponent: React.ComponentType<VM & P>
 };
+
+export type ResultOf<S> = S extends SpecificationBase<any, infer VM> ? VM : never;
