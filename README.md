@@ -42,16 +42,49 @@ By default, the property will have the value `"<sender>"`, which is just there s
 That value will be used only if the sender has no name.
 In other words, if the `UserName.forUser` template matches no facts.
 
+You can get the results of a mapping with the hook `useResult`.
+Pass the Jinaga object, the starting fact, and the specification.
+Like all hooks, this can only be used within a render function -- typically in a function component.
+
+```javascript
+const messageView = ({ message }) => {
+    const result = useResult(j, message, messageSpec);
+
+    if (result === null) {
+        return <p>Loading</p>;
+    }
+    else {
+        const { text, sender } = message;
+
+        return (
+            <>
+                <p className="message-text">{text}</p>
+                <p className="message-sender">{sender}</p>
+            </>
+        );
+    }
+}
+```
+
+The hook returns null while the results are loading asynchronously, or if the starting fact is null.
+
 ## Mappings
 
 Once you have a specification, you can map it to a React component.
-Do this by calling the specification as a function and passing in the React render function.
+Do this by calling the `mapProps` function with the specification, and then the `to` function with the component.
+Function components or class components are accepted.
+If the component takes additional properties, you can use the generic argument on `to` to declare them (TypeScript only).
 
-```javascript
-const messageMapping = messageSpec(({ text, sender }) => (
+```typescript
+interface MessageProps {
+    onReply(): void;
+}
+
+const messageMapping = mapProps(messageSpec).to<MessageProps>(({ text, sender, onReply }) => (
     <>
         <p className="message-text">{text}</p>
         <p className="message-sender">{sender}</p>
+        <button onClick={onReply}>Reply</button>
     </>
 ));
 ```
@@ -69,12 +102,13 @@ class MessagePresenter extends React.Component {
             <>
                 <p className="message-text">{this.props.text}</p>
                 <p className="message-sender">{this.props.sender}</p>
+                <button onClick={this.props.onReply}>Reply</button>
             </>
         );
     }
 }
 
-const messageMapping = messageSpec(MessagePresenter);
+const messageMapping = mapProps(messageSpec).to(MessagePresenter);
 ```
 
 ## Containers
@@ -89,10 +123,17 @@ const MessageView = jinagaContainer(j, messageMapping);
 
 You can now use this container component as a regular React component.
 It has a prop called `fact` that takes the starting point of the graph.
+It also takes any unbound props that were added un the call to `mapProps`.`to`.
 
 ```javascript
+const message = new Message("Twas Brillig", user, new Channel("General"), new Date());
+
+function onReply() {
+    // ...
+}
+
 ReactDOM.render(
-    <MessageView fact={new Message("Twas Brillig", user, new Channel("General"), new Date())} />,
+    <MessageView fact={message} onReply={onReply} />,
     document.getElementById("message-host"));
 ```
 
@@ -112,12 +153,13 @@ const channelSpec = specificationFor(Channel, {
 I gave the `Messages` prop a capitalized name.
 Want to know why?
 Because that lets me use it as a component!
+Supply any unbound parameters.
 
 ```javascript
 const channelMapping = channelSpec(( { identifier, Messages }) => (
     <>
         <h1>{identifier}</h1>
-        <Messages />
+        <Messages onReply={onReply} />
     </>
 ));
 ```
