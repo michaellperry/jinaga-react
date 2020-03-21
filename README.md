@@ -1,6 +1,6 @@
 # Jinaga React
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/michaellperry/jinaga-react.svg)](https://greenkeeper.io/)
+
 
 Binding helpers for managing [React](https://reactjs.org) component state based on [Jinaga](https://jinaga.com) watches.
 
