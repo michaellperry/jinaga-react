@@ -1,6 +1,6 @@
 import { Transformer } from "../specifications/declaration";
 
-type HashMap = {
+export type HashMap = {
     [key: string]: any
 }
 

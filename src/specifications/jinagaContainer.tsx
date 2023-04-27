@@ -1,11 +1,11 @@
 import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
-import { createStore, Store, StorePath } from "../store/store";
+import { HashMap, Store, StorePath, createStore } from "../store/store";
 import { Transformer, WatchContext } from "./declaration";
 import { Mapping } from "./mapping";
 
-export function jinagaContainer<M, VM, P>(
+export function jinagaContainer<M, VM extends HashMap, P>(
     j: Jinaga,
     mapping: Mapping<M, VM, P>
 ): React.ComponentType<{ fact: M | null } & P> {
