@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { Transformer, WatchContext } from '../specifications/declaration';
 import { Specification } from '../specifications/mapping';
-import { createStore, Store, StorePath } from '../store/store';
+import { HashMap, Store, StorePath, createStore } from '../store/store';
 
 /**
  * Load the result of a specification within a function component.
@@ -17,7 +17,7 @@ import { createStore, Store, StorePath } from '../store/store';
  * @param fact The starting point for all queries in the specification.
  * @param specification Specifies the fields that will be generated from Jinaga queries. Create the specification with {@link specificationFor}.
  */
-export function useResult<M, VM>(j: Jinaga, fact: M | null, specification: Specification<M, VM>): VM | null {
+export function useResult<M, VM extends HashMap>(j: Jinaga, fact: M | null, specification: Specification<M, VM>): VM | null {
   const [ store, setStore ] = React.useState<Store | null>(null);
   const [ loaded, setLoaded ] = React.useState<boolean>(false);
 
@@ -42,7 +42,7 @@ export function useResult<M, VM>(j: Jinaga, fact: M | null, specification: Speci
   return vm;
 }
 
-function initializeStore<M, VM>(fact: M, specification: Specification<M, VM>): Store {
+function initializeStore<M, VM extends HashMap>(fact: M, specification: Specification<M, VM>): Store {
   return createStore(
     specification.initialMappingState(fact, []),
     specification.initialMappingItems(fact, [])

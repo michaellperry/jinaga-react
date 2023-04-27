@@ -1,16 +1,18 @@
 {
     "compilerOptions": {
         "module": "commonjs",
-        "target": "es5",
+        "target": "es6",
         "strict": true,
         "noImplicitAny": true,
         "strictNullChecks": true,
         "allowJs": false,
+        "forceConsistentCasingInFileNames": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
         "jsx": "react",
-        "moduleResolution": "node",
         "sourceMap": true,
         "declaration": true,
-        "outDir": "./dist/types",
+        "outDir": "dist",
         "baseUrl": ".",
         "lib": [ "dom", "es2015" ],
         "paths": {

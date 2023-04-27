@@ -2,7 +2,7 @@ import { Jinaga, Preposition, Watch } from "jinaga";
 import * as React from "react";
 import { JinagaContext } from "../components/JinagaContext";
 import { Mapping } from "../specifications/mapping";
-import { addStoreItem, combineStorePath, getStoreItem, getStoreItems, removeStoreItem, setStoreOrderBy, Store, StoreItem, StorePath } from "../store/store";
+import { addStoreItem, combineStorePath, getStoreItem, getStoreItems, HashMap, removeStoreItem, setStoreOrderBy, Store, StoreItem, StorePath } from "../store/store";
 import { BeginWatch, FieldDeclaration, Mutator, OrderByDeclaration, WatchContext } from "./declaration";
 
 /**
@@ -14,7 +14,7 @@ import { BeginWatch, FieldDeclaration, Mutator, OrderByDeclaration, WatchContext
  * @param mapping A specification mapping for the child elements
  * @param orderBy (Optional) A comparison function used to sort the collection
  */
-export function collection<M, U, VM, P, T>(
+export function collection<M, U, VM extends HashMap, P, T>(
     preposition: Preposition<M, U>,
     mapping: Mapping<U, VM, P>,
     orderBy?: OrderByDeclaration<U, T>
